@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Building2,
   Check,
@@ -11,7 +11,7 @@ import {
 import { CURRENCIES, detectCountry } from '../lib/country'
 import { useStore } from '../store'
 import { FadeIn } from '../components/Motion'
-import { isInsForgeConfigured } from '../lib/insforge'
+import { isInsForgeConfigured, probeInsForge } from '../lib/insforge'
 
 function flagEmoji(countryCode: string) {
   if (countryCode === 'US') return '🌎'
@@ -27,9 +27,24 @@ export function Onboarding() {
   const [orgName, setOrgName] = useState('Mis finanzas')
   const [phone, setPhone] = useState('')
   const [currency, setCurrency] = useState(detected.currencyCode)
+  const [cloudOk, setCloudOk] = useState<boolean | null>(isInsForgeConfigured ? null : false)
+
+  useEffect(() => {
+    let alive = true
+    if (!isInsForgeConfigured) return
+    void probeInsForge().then((r) => {
+      if (alive) setCloudOk(r.connected)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const selected = CURRENCIES.find((c) => c.code === currency) ?? CURRENCIES[0]
   const canStart = Boolean(userName.trim())
+  const cloudLabel =
+    cloudOk === true ? 'Nube conectada' : cloudOk === false ? 'Sin nube' : 'Conectando…'
+  const cloudShort = cloudOk === true ? 'Nube' : cloudOk === false ? 'Local' : '…'
 
   function handleStart() {
     if (!canStart) return
@@ -67,10 +82,10 @@ export function Onboarding() {
                 {detected.source === 'timezone' ? ' · detectado' : ''}
               </span>
             </span>
-            <span className={`onboard-pill ${isInsForgeConfigured ? 'ok' : 'warn'}`}>
+            <span className={`onboard-pill ${cloudOk ? 'ok' : 'warn'}`}>
               <Wallet size={15} strokeWidth={2.2} />
-              <span className="pill-short">{isInsForgeConfigured ? 'Nube' : 'Local'}</span>
-              <span className="pill-long">{isInsForgeConfigured ? 'Nube InsForge' : 'Modo local'}</span>
+              <span className="pill-short">{cloudShort}</span>
+              <span className="pill-long">{cloudLabel}</span>
             </span>
           </div>
 

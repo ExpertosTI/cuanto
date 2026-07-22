@@ -8,10 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "seed": "bash scripts/seed-env.sh"
+    "env": "bash scripts/seed-env.sh",
+    "db:tables": "bash scripts/apply-cuanto-tables.sh"
   },
   "dependencies": {
-    "@insforge/sdk": "^1.5.0",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.42.2",
     "html5-qrcode": "^2.3.8",

@@ -16,7 +16,7 @@ import './App.css'
 type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'equipo'
 
 function AppShell() {
-  const { settings } = useStore()
+  const { settings, cloudConnected } = useStore()
   const [tab, setTab] = useState<Tab>('resumen')
   const [returnTab, setReturnTab] = useState<Tab>('resumen')
   const [addType, setAddType] = useState<'expense' | 'income'>('expense')
@@ -26,6 +26,7 @@ function AppShell() {
   }
 
   const hideNav = tab === 'categorias' || tab === 'equipo'
+  const showCloudWarn = isInsForgeConfigured && cloudConnected === false
 
   function openAdd(type: 'expense' | 'income' = 'expense') {
     setAddType(type)
@@ -34,9 +35,9 @@ function AppShell() {
 
   return (
     <div className="app-shell">
-      {!isInsForgeConfigured ? (
-        <div className="mode-banner" title="Sin VITE_INSFORGE_URL / VITE_INSFORGE_ANON_KEY en el build">
-          Modo local · sin InsForge
+      {showCloudWarn ? (
+        <div className="mode-banner" title="InsForge no respondió; usando almacenamiento local">
+          Sin conexión a la nube · datos locales
         </div>
       ) : null}
 

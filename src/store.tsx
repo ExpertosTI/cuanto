@@ -8,8 +8,15 @@ import {
   type ReactNode,
 } from 'react'
 import { createDefaultCategories } from './data/categories'
-import { createSeedTransactions } from './data/seed'
 import { detectCountry } from './lib/country'
+import {
+  insforgeDelete,
+  insforgeInsert,
+  insforgeQuery,
+  insforgeUpsert,
+  isInsForgeConfigured,
+  probeInsForge,
+} from './lib/insforge'
 import { inviteJoinUrl, randomToken } from './lib/whatsapp'
 import type {
   AppSettings,
@@ -23,7 +30,8 @@ import type {
 } from './types'
 import { uid } from './utils'
 
-const STORAGE_KEY = 'cuanto-do-v2'
+/** v3: sin datos demo; limpia localStorage antiguo con seed */
+const STORAGE_KEY = 'cuanto-v3'
 
 function defaultSettings(): AppSettings {
   const detected = detectCountry()
@@ -39,11 +47,10 @@ function defaultSettings(): AppSettings {
 }
 
 function freshState(): AppState {
-  const categories = createDefaultCategories()
   return {
     settings: defaultSettings(),
-    categories,
-    transactions: createSeedTransactions(categories),
+    categories: createDefaultCategories(),
+    transactions: [],
     invites: [],
     scans: [],
     memberCode: randomToken(8),
@@ -53,16 +60,15 @@ function freshState(): AppState {
 function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return freshState()
+    if (!raw) {
+      localStorage.removeItem('cuanto-do-v2')
+      return freshState()
+    }
     const parsed = JSON.parse(raw) as AppState
-    const categories = parsed.categories?.length ? parsed.categories : createDefaultCategories()
-    const transactions = parsed.transactions?.length
-      ? parsed.transactions
-      : createSeedTransactions(categories)
     return {
       settings: { ...defaultSettings(), ...parsed.settings },
-      categories,
-      transactions,
+      categories: parsed.categories?.length ? parsed.categories : createDefaultCategories(),
+      transactions: parsed.transactions ?? [],
       invites: parsed.invites ?? [],
       scans: parsed.scans ?? [],
       memberCode: parsed.memberCode || randomToken(8),
@@ -70,6 +76,10 @@ function loadState(): AppState {
   } catch {
     return freshState()
   }
+}
+
+function spaceIdFrom(state: AppState) {
+  return `space_${state.memberCode}`
 }
 
 interface StoreContextValue {
@@ -81,6 +91,7 @@ interface StoreContextValue {
   memberCode: string
   balance: number
   isAdmin: boolean
+  cloudConnected: boolean | null
   completeOnboarding: (input: {
     userName: string
     orgName: string
@@ -105,10 +116,83 @@ const StoreContext = createContext<StoreContextValue | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => loadState())
+  const [cloudConnected, setCloudConnected] = useState<boolean | null>(
+    isInsForgeConfigured ? null : false,
+  )
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    let cancelled = false
+    async function syncFromCloud() {
+      if (!isInsForgeConfigured) {
+        setCloudConnected(false)
+        return
+      }
+      const probe = await probeInsForge()
+      if (cancelled) return
+      setCloudConnected(probe.connected)
+
+      if (!probe.connected || !state.settings.onboardingDone) return
+
+      const sid = spaceIdFrom(state)
+      const [cats, txs] = await Promise.all([
+        insforgeQuery<{
+          id: string
+          name: string
+          icon: string
+          color: string
+          type: 'expense' | 'income'
+          is_default?: boolean
+        }>('cuanto_categories', `space_id=eq.${encodeURIComponent(sid)}`),
+        insforgeQuery<{
+          id: string
+          category_id: string
+          type: 'expense' | 'income'
+          amount: number | string
+          occurred_on: string
+          note: string
+          created_at: string
+        }>('cuanto_transactions', `space_id=eq.${encodeURIComponent(sid)}&order=occurred_on.desc`),
+      ])
+
+      if (cancelled) return
+
+      setState((s) => {
+        const next = { ...s }
+        if (cats.ok && cats.data && cats.data.length > 0) {
+          next.categories = cats.data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            icon: c.icon,
+            color: c.color,
+            type: c.type,
+            isDefault: Boolean(c.is_default),
+          }))
+        }
+        if (txs.ok && txs.data) {
+          next.transactions = txs.data.map((t) => ({
+            id: t.id,
+            categoryId: t.category_id,
+            type: t.type,
+            amount: Number(t.amount),
+            date: t.occurred_on,
+            note: t.note ?? '',
+            createdAt: t.created_at,
+          }))
+        }
+        return next
+      })
+    }
+    void syncFromCloud()
+    return () => {
+      cancelled = true
+    }
+    // Solo al montar / cuando termina onboarding
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.settings.onboardingDone])
 
   const balance = useMemo(
     () =>
@@ -129,15 +213,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       countryCode: string
       phoneWhatsapp: string
     }) => {
-      setState((s) => ({
-        ...s,
-        settings: {
-          ...s.settings,
-          ...input,
-          onboardingDone: true,
+      setState((s) => {
+        const next: AppState = {
+          ...s,
+          settings: {
+            ...s.settings,
+            ...input,
+            onboardingDone: true,
+            role: 'owner',
+          },
+        }
+        const sid = spaceIdFrom(next)
+        void insforgeUpsert('cuanto_spaces', {
+          id: sid,
+          name: input.orgName,
+          currency_code: input.currency,
+          country_code: input.countryCode,
+          user_name: input.userName,
+          phone_whatsapp: input.phoneWhatsapp,
           role: 'owner',
-        },
-      }))
+          updated_at: new Date().toISOString(),
+        })
+        void insforgeUpsert(
+          'cuanto_categories',
+          next.categories.map((c) => ({
+            id: c.id,
+            space_id: sid,
+            name: c.name,
+            icon: c.icon,
+            color: c.color,
+            type: c.type,
+            is_default: Boolean(c.isDefault),
+            updated_at: new Date().toISOString(),
+          })),
+        )
+        return next
+      })
     },
     [],
   )
@@ -151,6 +262,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     memberCode: state.memberCode,
     balance,
     isAdmin,
+    cloudConnected,
     completeOnboarding,
     addTransaction: (input) => {
       const tx: Transaction = {
@@ -158,29 +270,74 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         id: uid('tx'),
         createdAt: new Date().toISOString(),
       }
-      setState((s) => ({ ...s, transactions: [tx, ...s.transactions] }))
+      setState((s) => {
+        const next = { ...s, transactions: [tx, ...s.transactions] }
+        void insforgeInsert('cuanto_transactions', {
+          id: tx.id,
+          space_id: spaceIdFrom(next),
+          category_id: tx.categoryId,
+          type: tx.type,
+          amount: tx.amount,
+          occurred_on: tx.date,
+          note: tx.note,
+          created_at: tx.createdAt,
+        })
+        return next
+      })
     },
     deleteTransaction: (id) => {
-      setState((s) => ({
-        ...s,
-        transactions: s.transactions.filter((t) => t.id !== id),
-      }))
+      setState((s) => {
+        void insforgeDelete('cuanto_transactions', `id=eq.${encodeURIComponent(id)}`)
+        return {
+          ...s,
+          transactions: s.transactions.filter((t) => t.id !== id),
+        }
+      })
     },
     addCategory: (input) => {
       const cat: Category = { ...input, id: uid('cat') }
-      setState((s) => ({ ...s, categories: [...s.categories, cat] }))
+      setState((s) => {
+        const next = { ...s, categories: [...s.categories, cat] }
+        void insforgeUpsert('cuanto_categories', {
+          id: cat.id,
+          space_id: spaceIdFrom(next),
+          name: cat.name,
+          icon: cat.icon,
+          color: cat.color,
+          type: cat.type,
+          is_default: false,
+          updated_at: new Date().toISOString(),
+        })
+        return next
+      })
     },
     updateCategory: (id, patch) => {
-      setState((s) => ({
-        ...s,
-        categories: s.categories.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-      }))
+      setState((s) => {
+        const categories = s.categories.map((c) => (c.id === id ? { ...c, ...patch } : c))
+        const cat = categories.find((c) => c.id === id)
+        if (cat) {
+          void insforgeUpsert('cuanto_categories', {
+            id: cat.id,
+            space_id: spaceIdFrom(s),
+            name: cat.name,
+            icon: cat.icon,
+            color: cat.color,
+            type: cat.type,
+            is_default: Boolean(cat.isDefault),
+            updated_at: new Date().toISOString(),
+          })
+        }
+        return { ...s, categories }
+      })
     },
     deleteCategory: (id) => {
-      setState((s) => ({
-        ...s,
-        categories: s.categories.filter((c) => c.id !== id),
-      }))
+      setState((s) => {
+        void insforgeDelete('cuanto_categories', `id=eq.${encodeURIComponent(id)}`)
+        return {
+          ...s,
+          categories: s.categories.filter((c) => c.id !== id),
+        }
+      })
     },
     getCategory: (id) => state.categories.find((c) => c.id === id),
     createInvite: ({ kind, role, label }) => {
