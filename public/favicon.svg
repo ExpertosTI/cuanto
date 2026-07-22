@@ -1,5 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="16" fill="#0f5a3d"/>
-  <circle cx="32" cy="32" r="14" stroke="#f0b429" stroke-width="6"/>
-  <path d="M32 18v28M22 32h20" stroke="#f0b429" stroke-width="4" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="tile" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2f7a56"/>
+      <stop offset="0.55" stop-color="#1f5a3e"/>
+      <stop offset="1" stop-color="#143528"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="20" y1="16" x2="44" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f0d078"/>
+      <stop offset="0.45" stop-color="#e0b84a"/>
+      <stop offset="1" stop-color="#b8892a"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#0a1c14" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#tile)"/>
+  <circle cx="32" cy="33" r="16" fill="#143528" opacity="0.22"/>
+  <circle cx="32" cy="31" r="15.5" fill="url(#coin)" filter="url(#soft)"/>
+  <circle cx="32" cy="31" r="12.2" stroke="#fff6d6" stroke-opacity="0.45" stroke-width="1.4"/>
+  <path d="M32 21.5v19M25.5 31h13" stroke="#3d2f0a" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M32 21.5v19M25.5 31h13" stroke="#fff8e0" stroke-opacity="0.35" stroke-width="1.2" stroke-linecap="round"/>
 </svg>
