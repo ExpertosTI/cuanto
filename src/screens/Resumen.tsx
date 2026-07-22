@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Plus } from 'lucide-react'
 import { DonutChart } from '../components/DonutChart'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { PeriodTabs } from '../components/PeriodTabs'
 import { FadeIn, Screen } from '../components/Motion'
 import { useStore } from '../store'
-import type { Period } from '../types'
+import type { Period, TransactionType } from '../types'
 import { filterByPeriod, filterByType, formatMoney, sumAmounts } from '../utils'
 
 interface ResumenProps {
-  onAdd: () => void
+  onAdd: (type?: TransactionType) => void
 }
 
 export function Resumen({ onAdd }: ResumenProps) {
@@ -57,14 +57,36 @@ export function Resumen({ onAdd }: ResumenProps) {
             <span className="pill-soft">{settings.currency}</span>
           </div>
           <div className="balance-split">
-            <div className="income-chip">
-              <span className="muted">Ingresos</span>
+            <button
+              type="button"
+              className="income-chip chip-action"
+              onClick={() => onAdd('income')}
+              aria-label="Agregar ingreso"
+            >
+              <span className="chip-top">
+                <span className="chip-icon" aria-hidden>
+                  <ArrowDownLeft size={16} strokeWidth={2.4} />
+                </span>
+                <span className="muted">Ingresos</span>
+              </span>
               <strong>{formatMoney(incomeTotal, settings.currency)}</strong>
-            </div>
-            <div className="expense-chip">
-              <span className="muted">Gastos</span>
+              <span className="chip-hint">+ Agregar</span>
+            </button>
+            <button
+              type="button"
+              className="expense-chip chip-action"
+              onClick={() => onAdd('expense')}
+              aria-label="Agregar gasto"
+            >
+              <span className="chip-top">
+                <span className="chip-icon" aria-hidden>
+                  <ArrowUpRight size={16} strokeWidth={2.4} />
+                </span>
+                <span className="muted">Gastos</span>
+              </span>
               <strong>{formatMoney(expenseTotal, settings.currency)}</strong>
-            </div>
+              <span className="chip-hint">+ Agregar</span>
+            </button>
           </div>
         </header>
       </FadeIn>
@@ -117,7 +139,7 @@ export function Resumen({ onAdd }: ResumenProps) {
         )}
       </section>
 
-      <button type="button" className="fab" aria-label="Agregar movimiento" onClick={onAdd}>
+      <button type="button" className="fab" aria-label="Agregar movimiento" onClick={() => onAdd()}>
         <Plus size={26} strokeWidth={2.5} />
       </button>
     </Screen>
