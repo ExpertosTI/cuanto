@@ -8,12 +8,13 @@ import { Resumen } from './screens/Resumen'
 import { Movimientos } from './screens/Movimientos'
 import { Agregar } from './screens/Agregar'
 import { Categorias } from './screens/Categorias'
+import { Metas } from './screens/Metas'
 import { Equipo } from './screens/Equipo'
 import { Unirse } from './screens/Unirse'
 import { isInsForgeConfigured } from './lib/insforge'
 import './App.css'
 
-type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'equipo'
+type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'metas' | 'equipo'
 
 function AppShell() {
   const { settings, cloudConnected } = useStore()
@@ -25,7 +26,7 @@ function AppShell() {
     return <Onboarding />
   }
 
-  const hideNav = tab === 'categorias' || tab === 'equipo'
+  const hideNav = tab === 'categorias' || tab === 'metas' || tab === 'equipo'
   const showCloudWarn = isInsForgeConfigured && cloudConnected === false
 
   function openAdd(type: 'expense' | 'income' = 'expense') {
@@ -43,7 +44,9 @@ function AppShell() {
 
       <main className="app-main">
         <AnimatePresence mode="wait">
-          {tab === 'resumen' && <Resumen key="resumen" onAdd={openAdd} />}
+          {tab === 'resumen' && (
+            <Resumen key="resumen" onAdd={openAdd} onOpenMetas={() => setTab('metas')} />
+          )}
           {tab === 'movimientos' && <Movimientos key="movimientos" />}
           {tab === 'agregar' && (
             <Agregar
@@ -61,8 +64,10 @@ function AppShell() {
               key="categorias"
               onBack={() => setTab(returnTab === 'agregar' ? 'agregar' : 'resumen')}
               onOpenEquipo={() => setTab('equipo')}
+              onOpenMetas={() => setTab('metas')}
             />
           )}
+          {tab === 'metas' && <Metas key="metas" onBack={() => setTab('resumen')} />}
           {tab === 'equipo' && <Equipo key="equipo" onBack={() => setTab('categorias')} />}
         </AnimatePresence>
       </main>

@@ -9,9 +9,10 @@ import type { TransactionType } from '../types'
 interface CategoriasProps {
   onBack: () => void
   onOpenEquipo?: () => void
+  onOpenMetas?: () => void
 }
 
-export function Categorias({ onBack, onOpenEquipo }: CategoriasProps) {
+export function Categorias({ onBack, onOpenEquipo, onOpenMetas }: CategoriasProps) {
   const { categories, addCategory, updateCategory, deleteCategory } = useStore()
   const [type, setType] = useState<TransactionType>('expense')
   const [name, setName] = useState('')
@@ -50,11 +51,18 @@ export function Categorias({ onBack, onOpenEquipo }: CategoriasProps) {
         </button>
         <h1>Categorías</h1>
         <p className="muted small">Gestiona nombres, íconos y colores.</p>
-        {onOpenEquipo ? (
-          <button type="button" className="btn-secondary btn-block" onClick={onOpenEquipo}>
-            Equipo e invitaciones
-          </button>
-        ) : null}
+        <div className="cat-extra-links">
+          {onOpenMetas ? (
+            <button type="button" className="btn-secondary btn-block" onClick={onOpenMetas}>
+              Metas e ingresos
+            </button>
+          ) : null}
+          {onOpenEquipo ? (
+            <button type="button" className="btn-secondary btn-block" onClick={onOpenEquipo}>
+              Equipo e invitaciones
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <div className="type-toggle">

@@ -1599,6 +1599,200 @@ p {
   font-weight: 600;
 }
 
+.goals-panel {
+  margin: 4px 0 14px;
+}
+
+.goals-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elevated));
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.goals-empty svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-row {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.goal-row-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.goal-ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.goal-ico.income {
+  background: color-mix(in srgb, var(--income) 18%, transparent);
+  color: var(--income);
+}
+
+.goal-ico.expense {
+  background: color-mix(in srgb, var(--expense) 18%, transparent);
+  color: var(--expense);
+}
+
+.goal-ico.save {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+
+.goal-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.goal-copy strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.goal-copy span {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.goal-row-top em {
+  font-style: normal;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.goal-row-top em.over {
+  color: var(--expense);
+}
+
+.goal-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+  overflow: hidden;
+}
+
+.goal-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
+.goal-fill.income {
+  background: var(--income);
+}
+
+.goal-fill.expense {
+  background: var(--expense);
+}
+
+.goal-fill.expense.over {
+  background: color-mix(in srgb, var(--expense) 75%, #7f1d1d);
+}
+
+.goal-fill.save {
+  background: var(--accent);
+}
+
+.metas-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.metas-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-elevated));
+}
+
+.metas-block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.metas-block-head svg {
+  color: var(--accent);
+}
+
+.savings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+
+.savings-card .section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aporte-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.aporte-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cat-extra-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  width: 100%;
+}
+
 @media (min-width: 441px) {
   .app-shell {
     border-left: 1px solid var(--line);

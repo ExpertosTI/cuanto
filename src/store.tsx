@@ -24,6 +24,7 @@ import type {
   Category,
   Invite,
   InviteKind,
+  MoneyGoals,
   OrgRole,
   ScanEvent,
   Transaction,
@@ -32,6 +33,17 @@ import { uid } from './utils'
 
 /** v3: sin datos demo; limpia localStorage antiguo con seed */
 const STORAGE_KEY = 'cuanto-v3'
+
+export function defaultGoals(): MoneyGoals {
+  return {
+    incomeMonth: 0,
+    expenseDay: 0,
+    expenseMonth: 0,
+    savingsTarget: 0,
+    savingsCurrent: 0,
+    savingsName: 'Fondo de ahorro',
+  }
+}
 
 function defaultSettings(): AppSettings {
   const detected = detectCountry()
@@ -54,6 +66,7 @@ function freshState(): AppState {
     invites: [],
     scans: [],
     memberCode: randomToken(8),
+    goals: defaultGoals(),
   }
 }
 
@@ -72,6 +85,7 @@ function loadState(): AppState {
       invites: parsed.invites ?? [],
       scans: parsed.scans ?? [],
       memberCode: parsed.memberCode || randomToken(8),
+      goals: { ...defaultGoals(), ...parsed.goals },
     }
   } catch {
     return freshState()
@@ -89,6 +103,7 @@ interface StoreContextValue {
   invites: Invite[]
   scans: ScanEvent[]
   memberCode: string
+  goals: MoneyGoals
   balance: number
   isAdmin: boolean
   cloudConnected: boolean | null
@@ -99,6 +114,8 @@ interface StoreContextValue {
     countryCode: string
     phoneWhatsapp: string
   }) => void
+  updateGoals: (patch: Partial<MoneyGoals>) => void
+  addSavings: (amount: number) => void
   addTransaction: (input: Omit<Transaction, 'id' | 'createdAt'>) => void
   deleteTransaction: (id: string) => void
   addCategory: (input: Omit<Category, 'id'>) => void
@@ -260,10 +277,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     invites: state.invites,
     scans: state.scans,
     memberCode: state.memberCode,
+    goals: state.goals,
     balance,
     isAdmin,
     cloudConnected,
     completeOnboarding,
+    updateGoals: (patch) => {
+      setState((s) => ({
+        ...s,
+        goals: {
+          ...s.goals,
+          ...patch,
+          incomeMonth: Math.max(0, patch.incomeMonth ?? s.goals.incomeMonth),
+          expenseDay: Math.max(0, patch.expenseDay ?? s.goals.expenseDay),
+          expenseMonth: Math.max(0, patch.expenseMonth ?? s.goals.expenseMonth),
+          savingsTarget: Math.max(0, patch.savingsTarget ?? s.goals.savingsTarget),
+          savingsCurrent: Math.max(0, patch.savingsCurrent ?? s.goals.savingsCurrent),
+          savingsName: (patch.savingsName ?? s.goals.savingsName).trim() || 'Fondo de ahorro',
+        },
+      }))
+    },
+    addSavings: (amount) => {
+      if (amount <= 0) return
+      setState((s) => ({
+        ...s,
+        goals: {
+          ...s.goals,
+          savingsCurrent: s.goals.savingsCurrent + amount,
+        },
+      }))
+    },
     addTransaction: (input) => {
       const tx: Transaction = {
         ...input,

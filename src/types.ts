@@ -55,6 +55,21 @@ export interface MemberCode {
   profileName: string
 }
 
+export interface MoneyGoals {
+  /** Meta de ingresos del mes (0 = sin meta) */
+  incomeMonth: number
+  /** Tope de gastos del día */
+  expenseDay: number
+  /** Tope de gastos del mes */
+  expenseMonth: number
+  /** Meta de ahorro */
+  savingsTarget: number
+  /** Lo ya ahorrado */
+  savingsCurrent: number
+  /** Nombre del plan (ej. Fondo emergencia) */
+  savingsName: string
+}
+
 export interface AppSettings {
   currency: string
   countryCode: string
@@ -72,4 +87,5 @@ export interface AppState {
   invites: Invite[]
   scans: ScanEvent[]
   memberCode: string
+  goals: MoneyGoals
 }

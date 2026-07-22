@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, Plus } from 'lucide-react'
 import { DonutChart } from '../components/DonutChart'
 import { CategoryIcon } from '../components/CategoryIcon'
+import { GoalsPanel } from '../components/GoalsPanel'
 import { PeriodTabs } from '../components/PeriodTabs'
 import { FadeIn, Screen } from '../components/Motion'
 import { useStore } from '../store'
@@ -10,9 +11,10 @@ import { filterByPeriod, filterByType, formatMoney, sumAmounts } from '../utils'
 
 interface ResumenProps {
   onAdd: (type?: TransactionType) => void
+  onOpenMetas: () => void
 }
 
-export function Resumen({ onAdd }: ResumenProps) {
+export function Resumen({ onAdd, onOpenMetas }: ResumenProps) {
   const { balance, transactions, categories, settings } = useStore()
   const [period, setPeriod] = useState<Period>('month')
   const [reference, setReference] = useState(new Date())
@@ -92,6 +94,10 @@ export function Resumen({ onAdd }: ResumenProps) {
       </FadeIn>
 
       <FadeIn delay={0.05}>
+        <GoalsPanel onOpenMetas={onOpenMetas} />
+      </FadeIn>
+
+      <FadeIn delay={0.08}>
         <PeriodTabs
           period={period}
           onPeriodChange={setPeriod}
