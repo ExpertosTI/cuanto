@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createDefaultCategories } from './data/categories'
+import { createSeedTransactions } from './data/seed'
 import { detectCountry } from './lib/country'
 import { inviteJoinUrl, randomToken } from './lib/whatsapp'
 import type {
@@ -37,37 +38,37 @@ function defaultSettings(): AppSettings {
   }
 }
 
+function freshState(): AppState {
+  const categories = createDefaultCategories()
+  return {
+    settings: defaultSettings(),
+    categories,
+    transactions: createSeedTransactions(categories),
+    invites: [],
+    scans: [],
+    memberCode: randomToken(8),
+  }
+}
+
 function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      return {
-        settings: defaultSettings(),
-        categories: createDefaultCategories(),
-        transactions: [],
-        invites: [],
-        scans: [],
-        memberCode: randomToken(8),
-      }
-    }
+    if (!raw) return freshState()
     const parsed = JSON.parse(raw) as AppState
+    const categories = parsed.categories?.length ? parsed.categories : createDefaultCategories()
+    const transactions = parsed.transactions?.length
+      ? parsed.transactions
+      : createSeedTransactions(categories)
     return {
       settings: { ...defaultSettings(), ...parsed.settings },
-      categories: parsed.categories?.length ? parsed.categories : createDefaultCategories(),
-      transactions: parsed.transactions ?? [],
+      categories,
+      transactions,
       invites: parsed.invites ?? [],
       scans: parsed.scans ?? [],
       memberCode: parsed.memberCode || randomToken(8),
     }
   } catch {
-    return {
-      settings: defaultSettings(),
-      categories: createDefaultCategories(),
-      transactions: [],
-      invites: [],
-      scans: [],
-      memberCode: randomToken(8),
-    }
+    return freshState()
   }
 }
 

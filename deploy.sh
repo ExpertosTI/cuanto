@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ── cuanto — Renace Protocol deploy.sh ──────────────────────
-#  Uso en el VPS:
-#      cd /opt/cuanto && ./deploy.sh
-#  Primera vez: clona el repo en PROJECT_DIR y despliega.
+#  Un solo comando en el VPS:
+#      curl -fsSL https://raw.githubusercontent.com/ExpertosTI/cuanto/main/deploy.sh | bash
+#  o:  cd /opt/cuanto && ./deploy.sh
 
 set -euo pipefail
 
@@ -12,9 +12,22 @@ STACK_NAME="${STACK_NAME:-cuanto}"
 SERVICE_NAME="${STACK_NAME}_web"
 DOMAIN="${DOMAIN:-cuanto.renace.tech}"
 
+# Claves del stack Renace (insforge.renace.tech) — mismas que ZAV/RK
+DEFAULT_INSFORGE_URL="https://insforge.renace.tech"
+DEFAULT_INSFORGE_ANON_KEY="eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24ifQ.YTrshWNWGSWsmc6DUhitFQSXDICh9BTIiz4CK0GX0Cw"
+DEFAULT_WHATSAPP="17174156171"
+
 cyan()  { printf "\033[36m%s\033[0m\n" "$*"; }
 green() { printf "\033[32m%s\033[0m\n" "$*"; }
-red()   { printf "\033[31m%s\033[0m\n" "$*"; }
+
+write_env() {
+  cat > .env <<EOF
+VITE_INSFORGE_URL=${VITE_INSFORGE_URL:-$DEFAULT_INSFORGE_URL}
+VITE_INSFORGE_ANON_KEY=${VITE_INSFORGE_ANON_KEY:-$DEFAULT_INSFORGE_ANON_KEY}
+VITE_WHATSAPP_BUSINESS=${VITE_WHATSAPP_BUSINESS:-$DEFAULT_WHATSAPP}
+DOMAIN=${DOMAIN}
+EOF
+}
 
 cyan "── 1. Sincronizar fuente ───────────────────────"
 if [ -d "$PROJECT_DIR/.git" ]; then
@@ -25,13 +38,12 @@ else
   git clone "$REPO_URL" "$PROJECT_DIR"
   cd "$PROJECT_DIR"
 fi
+chmod +x deploy.sh scripts/*.sh 2>/dev/null || true
 
-cyan "── 2. Verificar .env ───────────────────────────"
-if [ ! -f ".env" ]; then
-  cp .env.example .env
-  red "❌ Editá .env con las claves de producción, luego re-ejecutá ./deploy.sh"
-  exit 1
-fi
+cyan "── 2. Autoconfigurar .env (stack Renace) ───────"
+write_env
+green "   InsForge → ${DEFAULT_INSFORGE_URL}"
+green "   Dominio  → ${DOMAIN}"
 
 cyan "── 3. Construir imagen local ───────────────────"
 set -a
@@ -39,7 +51,7 @@ set -a
 source .env
 set +a
 export DOMAIN
-docker compose build
+docker compose build --no-cache
 
 cyan "── 4. Asegurar red RenaceNet ───────────────────"
 if ! docker network ls --format '{{.Name}}' | grep -qx "RenaceNet"; then
@@ -56,7 +68,7 @@ cyan "── 7. Limpiar imágenes huérfanas ───────────�
 docker image prune -f >/dev/null
 
 green ""
-green "✅ cuanto desplegado."
+green "✅ cuanto desplegado (InsForge Renace + seed local)."
 green "   Sitio:    https://$DOMAIN"
 green "   Servicio: $SERVICE_NAME"
 green "   Logs:     docker service logs -f $SERVICE_NAME"
