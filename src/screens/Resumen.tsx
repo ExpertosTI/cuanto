@@ -12,9 +12,11 @@ import { filterByPeriod, filterByType, formatMoney, sumAmounts } from '../utils'
 interface ResumenProps {
   onAdd: (type?: TransactionType) => void
   onOpenMetas: () => void
+  onOpenPro?: () => void
+  isPro?: boolean
 }
 
-export function Resumen({ onAdd, onOpenMetas }: ResumenProps) {
+export function Resumen({ onAdd, onOpenMetas, onOpenPro, isPro }: ResumenProps) {
   const { balance, transactions, categories, settings } = useStore()
   const [period, setPeriod] = useState<Period>('month')
   const [reference, setReference] = useState(new Date())
@@ -56,7 +58,18 @@ export function Resumen({ onAdd, onOpenMetas }: ResumenProps) {
               <p className="eyebrow">Balance · {settings.orgName}</p>
               <h1 className="balance-amount">{formatMoney(balance, settings.currency)}</h1>
             </div>
-            <span className="pill-soft">{settings.currency}</span>
+            <div className="balance-badges">
+              <span className="pill-soft">{settings.currency}</span>
+              {onOpenPro ? (
+                <button
+                  type="button"
+                  className={`pill-soft pro-pill ${isPro ? 'on' : ''}`}
+                  onClick={onOpenPro}
+                >
+                  {isPro ? 'Pro' : 'Pro $1.99'}
+                </button>
+              ) : null}
+            </div>
           </div>
           <div className="balance-split">
             <button

@@ -20,15 +20,17 @@ import {
 
 interface EquipoProps {
   onBack?: () => void
+  onOpenPro?: () => void
 }
 
-export function Equipo({ onBack }: EquipoProps) {
+export function Equipo({ onBack, onOpenPro }: EquipoProps) {
   const {
     settings,
     invites,
     scans,
     memberCode,
     isAdmin,
+    isPro,
     createInvite,
     revokeInvite,
     getInviteUrl,
@@ -67,6 +69,11 @@ export function Equipo({ onBack }: EquipoProps) {
   }
 
   function createAdminInvite() {
+    if (!isPro) {
+      flash('QR admin es Pro')
+      onOpenPro?.()
+      return
+    }
     const invite = createInvite({
       kind: 'admin_join',
       role: 'admin',
@@ -162,9 +169,13 @@ export function Equipo({ onBack }: EquipoProps) {
           <UserPlus size={22} />
           <span>QR cliente</span>
         </button>
-        <button type="button" className="action-card" onClick={createAdminInvite}>
+        <button
+          type="button"
+          className={`action-card ${isPro ? '' : 'locked'}`}
+          onClick={createAdminInvite}
+        >
           <QrCode size={22} />
-          <span>QR admin</span>
+          <span>{isPro ? 'QR admin' : 'QR admin · Pro'}</span>
         </button>
         <button type="button" className="action-card" onClick={shareInvite}>
           <MessageCircle size={22} />

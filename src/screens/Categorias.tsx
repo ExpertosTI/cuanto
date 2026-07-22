@@ -10,9 +10,10 @@ interface CategoriasProps {
   onBack: () => void
   onOpenEquipo?: () => void
   onOpenMetas?: () => void
+  onOpenPro?: () => void
 }
 
-export function Categorias({ onBack, onOpenEquipo, onOpenMetas }: CategoriasProps) {
+export function Categorias({ onBack, onOpenEquipo, onOpenMetas, onOpenPro }: CategoriasProps) {
   const { categories, addCategory, updateCategory, deleteCategory } = useStore()
   const [type, setType] = useState<TransactionType>('expense')
   const [name, setName] = useState('')
@@ -52,6 +53,11 @@ export function Categorias({ onBack, onOpenEquipo, onOpenMetas }: CategoriasProp
         <h1>Categorías</h1>
         <p className="muted small">Gestiona nombres, íconos y colores.</p>
         <div className="cat-extra-links">
+          {onOpenPro ? (
+            <button type="button" className="btn-primary btn-block" onClick={onOpenPro}>
+              Cuanto Pro · $1.99
+            </button>
+          ) : null}
           {onOpenMetas ? (
             <button type="button" className="btn-secondary btn-block" onClick={onOpenMetas}>
               Metas e ingresos
@@ -169,6 +175,12 @@ export function Categorias({ onBack, onOpenEquipo, onOpenMetas }: CategoriasProp
           </div>
         ))}
       </section>
+
+      <p className="app-legal-links">
+        <a href="/privacidad">Privacidad</a>
+        <span>·</span>
+        <a href="/terminos">Términos</a>
+      </p>
     </Screen>
   )
 }

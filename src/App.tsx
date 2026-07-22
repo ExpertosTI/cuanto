@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { LayoutDashboard, List, PlusCircle, Tags } from 'lucide-react'
 import { StoreProvider, useStore } from './store'
+import { InstallPrompt } from './components/InstallPrompt'
 import { Onboarding } from './screens/Onboarding'
 import { Resumen } from './screens/Resumen'
 import { Movimientos } from './screens/Movimientos'
@@ -10,14 +11,16 @@ import { Agregar } from './screens/Agregar'
 import { Categorias } from './screens/Categorias'
 import { Metas } from './screens/Metas'
 import { Equipo } from './screens/Equipo'
+import { Pro } from './screens/Pro'
+import { Privacidad, Terminos } from './screens/Legal'
 import { Unirse } from './screens/Unirse'
 import { isInsForgeConfigured } from './lib/insforge'
 import './App.css'
 
-type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'metas' | 'equipo'
+type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'metas' | 'equipo' | 'pro'
 
 function AppShell() {
-  const { settings, cloudConnected } = useStore()
+  const { settings, cloudConnected, isPro } = useStore()
   const [tab, setTab] = useState<Tab>('resumen')
   const [returnTab, setReturnTab] = useState<Tab>('resumen')
   const [addType, setAddType] = useState<'expense' | 'income'>('expense')
@@ -26,7 +29,8 @@ function AppShell() {
     return <Onboarding />
   }
 
-  const hideNav = tab === 'categorias' || tab === 'metas' || tab === 'equipo'
+  const hideNav =
+    tab === 'categorias' || tab === 'metas' || tab === 'equipo' || tab === 'pro'
   const showCloudWarn = isInsForgeConfigured && cloudConnected === false
 
   function openAdd(type: 'expense' | 'income' = 'expense') {
@@ -42,12 +46,22 @@ function AppShell() {
         </div>
       ) : null}
 
+      <InstallPrompt />
+
       <main className="app-main">
         <AnimatePresence mode="wait">
           {tab === 'resumen' && (
-            <Resumen key="resumen" onAdd={openAdd} onOpenMetas={() => setTab('metas')} />
+            <Resumen
+              key="resumen"
+              onAdd={openAdd}
+              onOpenMetas={() => setTab('metas')}
+              onOpenPro={() => setTab('pro')}
+              isPro={isPro}
+            />
           )}
-          {tab === 'movimientos' && <Movimientos key="movimientos" />}
+          {tab === 'movimientos' && (
+            <Movimientos key="movimientos" onOpenPro={() => setTab('pro')} />
+          )}
           {tab === 'agregar' && (
             <Agregar
               key={`agregar-${addType}`}
@@ -65,10 +79,18 @@ function AppShell() {
               onBack={() => setTab(returnTab === 'agregar' ? 'agregar' : 'resumen')}
               onOpenEquipo={() => setTab('equipo')}
               onOpenMetas={() => setTab('metas')}
+              onOpenPro={() => setTab('pro')}
             />
           )}
           {tab === 'metas' && <Metas key="metas" onBack={() => setTab('resumen')} />}
-          {tab === 'equipo' && <Equipo key="equipo" onBack={() => setTab('categorias')} />}
+          {tab === 'pro' && <Pro key="pro" onBack={() => setTab('resumen')} />}
+          {tab === 'equipo' && (
+            <Equipo
+              key="equipo"
+              onBack={() => setTab('categorias')}
+              onOpenPro={() => setTab('pro')}
+            />
+          )}
         </AnimatePresence>
       </main>
 
@@ -106,7 +128,7 @@ function AppShell() {
             }}
           >
             <Tags size={22} />
-            <span>Categorías</span>
+            <span>Más</span>
           </button>
         </nav>
       ) : null}
@@ -119,6 +141,8 @@ export default function App() {
     <StoreProvider>
       <Routes>
         <Route path="/unirse/:token" element={<Unirse />} />
+        <Route path="/privacidad" element={<Privacidad />} />
+        <Route path="/terminos" element={<Terminos />} />
         <Route path="/*" element={<AppShell />} />
       </Routes>
     </StoreProvider>

@@ -1793,6 +1793,211 @@ p {
   width: 100%;
 }
 
+.balance-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pro-pill {
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-elevated));
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.pro-pill.on {
+  background: color-mix(in srgb, var(--income) 18%, var(--bg-elevated));
+  border-color: color-mix(in srgb, var(--income) 40%, var(--line));
+  color: var(--income-deep);
+}
+
+.pro-hero {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 55%),
+    var(--bg-elevated);
+  margin-bottom: 14px;
+}
+
+.pro-hero h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.35rem;
+  margin: 8px 0 6px;
+}
+
+.pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent-ink);
+}
+
+.pro-perks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pro-perks li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+
+.pro-perks svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.pro-perks strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.pro-perks span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.pro-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pro-code-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pro-ok {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--income-deep);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.legal-foot {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.legal-foot a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.legal-screen .legal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 40px;
+}
+
+.legal-body h2 {
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+.legal-body ul {
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.legal-body p,
+.legal-body li {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--ink) 88%, var(--muted));
+}
+
+.install-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 12px 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+
+.install-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-copy strong {
+  font-size: 0.88rem;
+}
+
+.install-copy span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.install-btn {
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.icon-ghost {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.app-legal-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 12px calc(8px + var(--safe-bottom));
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.app-legal-links a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.action-card.locked {
+  opacity: 0.72;
+}
+
 @media (min-width: 441px) {
   .app-shell {
     border-left: 1px solid var(--line);

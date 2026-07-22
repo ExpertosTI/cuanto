@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Download, Trash2 } from 'lucide-react'
 import { CategoryIcon } from '../components/CategoryIcon'
 import { PeriodTabs } from '../components/PeriodTabs'
 import { FadeIn, Screen } from '../components/Motion'
 import { useStore } from '../store'
 import type { Period, TransactionType } from '../types'
 import {
+  downloadTransactionsCsv,
   filterByPeriod,
   filterByType,
   formatDateLabel,
@@ -14,8 +15,12 @@ import {
   sumAmounts,
 } from '../utils'
 
-export function Movimientos() {
-  const { transactions, settings, getCategory, deleteTransaction } = useStore()
+interface MovimientosProps {
+  onOpenPro?: () => void
+}
+
+export function Movimientos({ onOpenPro }: MovimientosProps) {
+  const { transactions, categories, settings, getCategory, deleteTransaction, isPro } = useStore()
   const [type, setType] = useState<TransactionType>('expense')
   const [period, setPeriod] = useState<Period>('week')
   const [reference, setReference] = useState(new Date())
@@ -27,10 +32,24 @@ export function Movimientos() {
   const total = sumAmounts(filtered)
   const groups = groupByDate(filtered)
 
+  function handleExport() {
+    if (!isPro) {
+      onOpenPro?.()
+      return
+    }
+    downloadTransactionsCsv(transactions, categories)
+  }
+
   return (
     <Screen className={type === 'income' ? 'mode-income' : 'mode-expense'}>
       <header className="screen-header">
-        <h1>Movimientos</h1>
+        <div className="section-label" style={{ margin: 0 }}>
+          <h1>Movimientos</h1>
+          <button type="button" className="link-btn" onClick={handleExport}>
+            <Download size={16} style={{ verticalAlign: '-3px', marginRight: 4 }} />
+            {isPro ? 'Exportar' : 'Exportar Pro'}
+          </button>
+        </div>
         <div className="type-toggle">
           <button
             type="button"

@@ -121,3 +121,39 @@ export function slugify(value: string): string {
     .replace(/(^-|-$)/g, '')
     .slice(0, 40)
 }
+
+/** Exporta movimientos a CSV (Excel / Sheets). */
+export function downloadTransactionsCsv(
+  transactions: Transaction[],
+  categories: { id: string; name: string }[],
+  filename = 'cuanto-movimientos.csv',
+) {
+  const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? id
+  const rows = [
+    ['fecha', 'tipo', 'categoria', 'monto', 'nota', 'creado'].join(','),
+    ...[...transactions]
+      .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))
+      .map((t) =>
+        [
+          t.date,
+          t.type,
+          csvEscape(catName(t.categoryId)),
+          String(t.amount),
+          csvEscape(t.note || ''),
+          t.createdAt,
+        ].join(','),
+      ),
+  ]
+  const blob = new Blob([`\uFEFF${rows.join('\n')}`], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function csvEscape(value: string) {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
+  return value
+}

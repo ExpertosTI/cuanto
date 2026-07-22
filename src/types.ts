@@ -70,6 +70,8 @@ export interface MoneyGoals {
   savingsName: string
 }
 
+export type PlanTier = 'free' | 'pro'
+
 export interface AppSettings {
   currency: string
   countryCode: string
@@ -78,6 +80,9 @@ export interface AppSettings {
   userName: string
   phoneWhatsapp: string
   role: OrgRole
+  /** free | pro — Pro se activa tras pago WhatsApp + código */
+  plan: PlanTier
+  proActivatedAt?: string
 }
 
 export interface AppState {

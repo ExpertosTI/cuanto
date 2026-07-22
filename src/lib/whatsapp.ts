@@ -20,7 +20,8 @@ export function whatsappChatUrl(phone: string, message: string): string {
 }
 
 export function inviteJoinUrl(token: string): string {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://cuanto.app'
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://cuanto.renace.tech'
   return `${origin}/unirse/${token}`
 }
 

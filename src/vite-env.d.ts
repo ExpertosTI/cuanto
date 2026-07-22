@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_INSFORGE_URL?: string
   readonly VITE_INSFORGE_ANON_KEY?: string
   readonly VITE_WHATSAPP_BUSINESS?: string
+  readonly VITE_PRO_CODE?: string
 }
 
 interface ImportMeta {

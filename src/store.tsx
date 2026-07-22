@@ -55,6 +55,7 @@ function defaultSettings(): AppSettings {
     userName: '',
     phoneWhatsapp: '',
     role: 'owner',
+    plan: 'free',
   }
 }
 
@@ -106,6 +107,7 @@ interface StoreContextValue {
   goals: MoneyGoals
   balance: number
   isAdmin: boolean
+  isPro: boolean
   cloudConnected: boolean | null
   completeOnboarding: (input: {
     userName: string
@@ -114,6 +116,7 @@ interface StoreContextValue {
     countryCode: string
     phoneWhatsapp: string
   }) => void
+  activatePro: () => void
   updateGoals: (patch: Partial<MoneyGoals>) => void
   addSavings: (amount: number) => void
   addTransaction: (input: Omit<Transaction, 'id' | 'createdAt'>) => void
@@ -221,6 +224,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   )
 
   const isAdmin = state.settings.role === 'owner' || state.settings.role === 'admin'
+  const isPro = state.settings.plan === 'pro'
 
   const completeOnboarding = useCallback(
     (input: {
@@ -280,8 +284,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     goals: state.goals,
     balance,
     isAdmin,
+    isPro,
     cloudConnected,
     completeOnboarding,
+    activatePro: () => {
+      setState((s) => ({
+        ...s,
+        settings: {
+          ...s.settings,
+          plan: 'pro',
+          proActivatedAt: new Date().toISOString(),
+        },
+      }))
+    },
     updateGoals: (patch) => {
       setState((s) => ({
         ...s,
