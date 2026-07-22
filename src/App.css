@@ -1998,6 +1998,259 @@ p {
   opacity: 0.72;
 }
 
+/* ── Temas ─────────────────────────────────────────────── */
+[data-theme='oceano'] {
+  --bg: #eef4f8;
+  --bg-elevated: #ffffff;
+  --ink: #132433;
+  --muted: #5a7082;
+  --line: #cfdce6;
+  --brand: #2a6f9b;
+  --brand-deep: #1a4a6b;
+  --accent: #3db8a0;
+  --accent-ink: #0d3d34;
+  --income: #2a8f7a;
+  --income-soft: #e2f5f0;
+  --income-deep: #1a5c4e;
+  --expense: #c45c4e;
+  --expense-soft: #f8e9e6;
+  --expense-deep: #8c3f35;
+}
+
+[data-theme='arena'] {
+  --bg: #f6f1e8;
+  --bg-elevated: #fffcf7;
+  --ink: #2c2418;
+  --muted: #7a6b55;
+  --line: #e4d8c4;
+  --brand: #8a6430;
+  --brand-deep: #6b4f2a;
+  --accent: #c48a3a;
+  --accent-ink: #3d2a0d;
+  --income: #5d8a4a;
+  --income-soft: #eaf3e4;
+  --income-deep: #3d5c30;
+  --expense: #b85a42;
+  --expense-soft: #f7e8e3;
+  --expense-deep: #7a3a2c;
+}
+
+[data-theme='noche'] {
+  --bg: #121816;
+  --bg-elevated: #1c2420;
+  --ink: #e8efea;
+  --muted: #9aaca2;
+  --line: #2e3a34;
+  --brand: #3d9a6c;
+  --brand-deep: #2a6b4a;
+  --accent: #e0b84a;
+  --accent-ink: #1c1608;
+  --income: #4cba82;
+  --income-soft: #1a3326;
+  --income-deep: #8fe0b4;
+  --expense: #e07a6c;
+  --expense-soft: #3a221f;
+  --expense-deep: #ffb4a8;
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.theme-picker {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.theme-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.theme-chip.active {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent);
+}
+
+.theme-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Agente ────────────────────────────────────────────── */
+.agent-fab {
+  position: fixed;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: calc(14px + var(--safe-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.agent-panel {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(12px + var(--safe-bottom));
+  z-index: 45;
+  max-width: 400px;
+  max-height: min(560px, calc(100vh - 7rem));
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.app-shell:has(.tab-bar) .agent-fab {
+  bottom: calc(var(--tab-h) + 14px + var(--safe-bottom));
+}
+
+.app-shell:has(.tab-bar) .agent-panel {
+  bottom: calc(var(--tab-h) + 12px + var(--safe-bottom));
+}
+
+.agent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--brand) 10%, var(--bg-elevated));
+}
+
+.agent-head-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.agent-head-title strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.agent-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: #fff;
+}
+
+.agent-head-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.agent-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 180px;
+}
+
+.agent-bubble {
+  max-width: 88%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.agent-bubble.user {
+  align-self: flex-end;
+  background: var(--brand);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.agent-bubble.assistant {
+  align-self: flex-start;
+  background: color-mix(in srgb, var(--line) 55%, var(--bg-elevated));
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+
+.agent-typing {
+  align-self: flex-start;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 8px;
+}
+
+.agent-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 8px;
+}
+
+.agent-quick button {
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line));
+  background: transparent;
+  color: var(--brand-deep);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+[data-theme='noche'] .agent-quick button {
+  color: var(--income);
+}
+
+.agent-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.agent-input input {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-input .btn-primary {
+  padding: 10px 12px;
+}
+
 @media (min-width: 441px) {
   .app-shell {
     border-left: 1px solid var(--line);

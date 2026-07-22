@@ -4,7 +4,7 @@ import { CategoryIcon } from '../components/CategoryIcon'
 import { Screen } from '../components/Motion'
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '../data/categories'
 import { useStore } from '../store'
-import type { TransactionType } from '../types'
+import type { AppTheme, TransactionType } from '../types'
 
 interface CategoriasProps {
   onBack: () => void
@@ -13,8 +13,15 @@ interface CategoriasProps {
   onOpenPro?: () => void
 }
 
+const THEMES: { id: AppTheme; label: string; swatch: string }[] = [
+  { id: 'bosque', label: 'Bosque', swatch: '#2f7a56' },
+  { id: 'oceano', label: 'Océano', swatch: '#2a6f9b' },
+  { id: 'arena', label: 'Arena', swatch: '#a67c3d' },
+  { id: 'noche', label: 'Noche', swatch: '#1a2220' },
+]
+
 export function Categorias({ onBack, onOpenEquipo, onOpenMetas, onOpenPro }: CategoriasProps) {
-  const { categories, addCategory, updateCategory, deleteCategory } = useStore()
+  const { categories, addCategory, updateCategory, deleteCategory, settings, setTheme } = useStore()
   const [type, setType] = useState<TransactionType>('expense')
   const [name, setName] = useState('')
   const [icon, setIcon] = useState<string>(CATEGORY_ICONS[0])
@@ -50,8 +57,8 @@ export function Categorias({ onBack, onOpenEquipo, onOpenMetas, onOpenPro }: Cat
         <button type="button" className="link-btn" onClick={onBack}>
           ← Volver
         </button>
-        <h1>Categorías</h1>
-        <p className="muted small">Gestiona nombres, íconos y colores.</p>
+        <h1>Más</h1>
+        <p className="muted small">Pro, metas, equipo, temas y categorías.</p>
         <div className="cat-extra-links">
           {onOpenPro ? (
             <button type="button" className="btn-primary btn-block" onClick={onOpenPro}>
@@ -68,6 +75,23 @@ export function Categorias({ onBack, onOpenEquipo, onOpenMetas, onOpenPro }: Cat
               Equipo e invitaciones
             </button>
           ) : null}
+        </div>
+
+        <div className="theme-picker">
+          <p className="field-label">Tema</p>
+          <div className="theme-grid">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`theme-chip ${settings.theme === t.id ? 'active' : ''}`}
+                onClick={() => setTheme(t.id)}
+              >
+                <span className="theme-swatch" style={{ background: t.swatch }} />
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 

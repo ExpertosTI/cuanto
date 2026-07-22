@@ -71,6 +71,7 @@ export interface MoneyGoals {
 }
 
 export type PlanTier = 'free' | 'pro'
+export type AppTheme = 'bosque' | 'oceano' | 'arena' | 'noche'
 
 export interface AppSettings {
   currency: string
@@ -83,6 +84,8 @@ export interface AppSettings {
   /** free | pro — Pro se activa tras pago WhatsApp + código */
   plan: PlanTier
   proActivatedAt?: string
+  /** Apariencia visual */
+  theme: AppTheme
 }
 
 export interface AppState {

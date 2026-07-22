@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 import { LayoutDashboard, List, PlusCircle, Tags } from 'lucide-react'
 import { StoreProvider, useStore } from './store'
 import { InstallPrompt } from './components/InstallPrompt'
+import { CuantoAgent } from './components/CuantoAgent'
 import { Onboarding } from './screens/Onboarding'
 import { Resumen } from './screens/Resumen'
 import { Movimientos } from './screens/Movimientos'
@@ -47,6 +48,7 @@ function AppShell() {
       ) : null}
 
       <InstallPrompt />
+      <CuantoAgent />
 
       <main className="app-main">
         <AnimatePresence mode="wait">

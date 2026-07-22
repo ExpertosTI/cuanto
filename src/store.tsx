@@ -25,6 +25,7 @@ import type {
   Invite,
   InviteKind,
   MoneyGoals,
+  AppTheme,
   OrgRole,
   ScanEvent,
   Transaction,
@@ -56,6 +57,7 @@ function defaultSettings(): AppSettings {
     phoneWhatsapp: '',
     role: 'owner',
     plan: 'free',
+    theme: 'bosque',
   }
 }
 
@@ -79,8 +81,11 @@ function loadState(): AppState {
       return freshState()
     }
     const parsed = JSON.parse(raw) as AppState
+    const themes: AppTheme[] = ['bosque', 'oceano', 'arena', 'noche']
+    const settings = { ...defaultSettings(), ...parsed.settings }
+    if (!themes.includes(settings.theme)) settings.theme = 'bosque'
     return {
-      settings: { ...defaultSettings(), ...parsed.settings },
+      settings,
       categories: parsed.categories?.length ? parsed.categories : createDefaultCategories(),
       transactions: parsed.transactions ?? [],
       invites: parsed.invites ?? [],
@@ -117,6 +122,7 @@ interface StoreContextValue {
     phoneWhatsapp: string
   }) => void
   activatePro: () => void
+  setTheme: (theme: AppTheme) => void
   updateGoals: (patch: Partial<MoneyGoals>) => void
   addSavings: (amount: number) => void
   addTransaction: (input: Omit<Transaction, 'id' | 'createdAt'>) => void
@@ -143,6 +149,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    const theme = state.settings.theme || 'bosque'
+    document.documentElement.setAttribute('data-theme', theme)
+    const meta = document.querySelector('meta[name="theme-color"]')
+    const colors: Record<string, string> = {
+      bosque: '#1f5a3e',
+      oceano: '#1a4a6b',
+      arena: '#6b4f2a',
+      noche: '#0f1412',
+    }
+    if (meta) meta.setAttribute('content', colors[theme] ?? colors.bosque)
+  }, [state.settings.theme])
 
   useEffect(() => {
     let cancelled = false
@@ -295,6 +314,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           plan: 'pro',
           proActivatedAt: new Date().toISOString(),
         },
+      }))
+    },
+    setTheme: (theme) => {
+      const allowed: AppTheme[] = ['bosque', 'oceano', 'arena', 'noche']
+      if (!allowed.includes(theme)) return
+      setState((s) => ({
+        ...s,
+        settings: { ...s.settings, theme },
       }))
     },
     updateGoals: (patch) => {
