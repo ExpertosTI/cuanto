@@ -1,0 +1,4 @@
+{
+  "$schema": "https://json.schemastore.org/insforge.toml",
+  "note": "Optional project config. Link with: npx @insforge/cli link"
+}

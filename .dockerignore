@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.vscode
+.idea
+README.md
+deploy.sh
+*.md
+.oxlintrc.json
+tsconfig*.tsbuildinfo

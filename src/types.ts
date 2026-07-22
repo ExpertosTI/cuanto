@@ -1,0 +1,75 @@
+export type TransactionType = 'expense' | 'income'
+export type Period = 'day' | 'week' | 'month' | 'year'
+export type OrgRole = 'owner' | 'admin' | 'member'
+export type InviteKind = 'client_join' | 'admin_join' | 'checkin'
+
+export interface Category {
+  id: string
+  name: string
+  icon: string
+  color: string
+  type: TransactionType
+  isDefault?: boolean
+}
+
+export interface Transaction {
+  id: string
+  amount: number
+  categoryId: string
+  type: TransactionType
+  date: string
+  note: string
+  createdAt: string
+}
+
+export interface CurrencyOption {
+  code: string
+  symbol: string
+  name: string
+  country: string
+  locale: string
+  countryCode: string
+}
+
+export interface Invite {
+  id: string
+  token: string
+  kind: InviteKind
+  role: OrgRole
+  label: string
+  createdAt: string
+  useCount: number
+  maxUses: number
+}
+
+export interface ScanEvent {
+  id: string
+  payload: string
+  source: 'qr' | 'whatsapp' | 'manual'
+  label: string
+  createdAt: string
+}
+
+export interface MemberCode {
+  code: string
+  profileName: string
+}
+
+export interface AppSettings {
+  currency: string
+  countryCode: string
+  onboardingDone: boolean
+  orgName: string
+  userName: string
+  phoneWhatsapp: string
+  role: OrgRole
+}
+
+export interface AppState {
+  settings: AppSettings
+  categories: Category[]
+  transactions: Transaction[]
+  invites: Invite[]
+  scans: ScanEvent[]
+  memberCode: string
+}
