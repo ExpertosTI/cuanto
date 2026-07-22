@@ -29,7 +29,9 @@ function AppShell() {
   return (
     <div className="app-shell">
       {!isInsForgeConfigured ? (
-        <div className="mode-banner">Modo local</div>
+        <div className="mode-banner" title="Sin VITE_INSFORGE_URL / VITE_INSFORGE_ANON_KEY en el build">
+          Modo local · sin InsForge
+        </div>
       ) : null}
 
       <main className="app-main">
