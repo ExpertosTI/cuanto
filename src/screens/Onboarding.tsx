@@ -61,12 +61,16 @@ export function Onboarding() {
           <div className="onboard-pills">
             <span className="onboard-pill">
               <MapPin size={15} strokeWidth={2.2} />
-              {selected.country} · {selected.code}
-              {detected.source === 'timezone' ? ' · detectado' : ''}
+              <span className="pill-short">{selected.code} · detectado</span>
+              <span className="pill-long">
+                {selected.country} · {selected.code}
+                {detected.source === 'timezone' ? ' · detectado' : ''}
+              </span>
             </span>
             <span className={`onboard-pill ${isInsForgeConfigured ? 'ok' : 'warn'}`}>
               <Wallet size={15} strokeWidth={2.2} />
-              {isInsForgeConfigured ? 'Nube InsForge' : 'Modo local'}
+              <span className="pill-short">{isInsForgeConfigured ? 'Nube' : 'Local'}</span>
+              <span className="pill-long">{isInsForgeConfigured ? 'Nube InsForge' : 'Modo local'}</span>
             </span>
           </div>
 
