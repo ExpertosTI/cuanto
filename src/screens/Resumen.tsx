@@ -84,7 +84,12 @@ export function Resumen({ onAdd }: ResumenProps) {
         centerValue={formatMoney(expenseTotal, settings.currency)}
       />
 
-      <section className="category-breakdown">
+      <div className="section-label">
+        <h2>Por categoría</h2>
+        <span>{chartData.length} ítems</span>
+      </div>
+
+      <section className="category-breakdown has-fab">
         {chartData.length === 0 ? (
           <p className="empty-hint">Aún no hay gastos en este período. Toca + para agregar uno.</p>
         ) : (
@@ -102,7 +107,9 @@ export function Resumen({ onAdd }: ResumenProps) {
                       <p className="breakdown-pct">{pct}%</p>
                     </div>
                   </div>
-                  <p className="breakdown-amount">{formatMoney(item.value, settings.currency)}</p>
+                  <p className="breakdown-amount expense-text">
+                    {formatMoney(item.value, settings.currency)}
+                  </p>
                 </div>
               </FadeIn>
             )

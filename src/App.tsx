@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import {
-  LayoutDashboard,
-  List,
-  PlusCircle,
-  Tags,
-  Users,
-} from 'lucide-react'
+import { LayoutDashboard, List, PlusCircle, Tags } from 'lucide-react'
 import { StoreProvider, useStore } from './store'
 import { Onboarding } from './screens/Onboarding'
 import { Resumen } from './screens/Resumen'
@@ -30,12 +24,12 @@ function AppShell() {
     return <Onboarding />
   }
 
-  const hideNav = tab === 'categorias'
+  const hideNav = tab === 'categorias' || tab === 'equipo'
 
   return (
     <div className="app-shell">
       {!isInsForgeConfigured ? (
-        <div className="mode-banner">Modo local · conecta InsForge para SaaS en la nube</div>
+        <div className="mode-banner">Modo local</div>
       ) : null}
 
       <main className="app-main">
@@ -56,9 +50,10 @@ function AppShell() {
             <Categorias
               key="categorias"
               onBack={() => setTab(returnTab === 'agregar' ? 'agregar' : 'resumen')}
+              onOpenEquipo={() => setTab('equipo')}
             />
           )}
-          {tab === 'equipo' && <Equipo key="equipo" />}
+          {tab === 'equipo' && <Equipo key="equipo" onBack={() => setTab('categorias')} />}
         </AnimatePresence>
       </main>
 
@@ -90,21 +85,13 @@ function AppShell() {
           </button>
           <button
             type="button"
-            className={tab === 'equipo' ? 'active' : ''}
-            onClick={() => setTab('equipo')}
-          >
-            <Users size={22} />
-            <span>Equipo</span>
-          </button>
-          <button
-            type="button"
             onClick={() => {
               setReturnTab('resumen')
               setTab('categorias')
             }}
           >
             <Tags size={22} />
-            <span>Más</span>
+            <span>Categorías</span>
           </button>
         </nav>
       ) : null}

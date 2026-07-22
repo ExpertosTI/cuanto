@@ -18,7 +18,11 @@ import {
   whatsappChatUrl,
 } from '../lib/whatsapp'
 
-export function Equipo() {
+interface EquipoProps {
+  onBack?: () => void
+}
+
+export function Equipo({ onBack }: EquipoProps) {
   const {
     settings,
     invites,
@@ -123,7 +127,12 @@ export function Equipo() {
   if (!isAdmin) {
     return (
       <Screen>
-        <header className="screen-header">
+        <header className="screen-header row">
+          {onBack ? (
+            <button type="button" className="link-btn" onClick={onBack}>
+              ← Volver
+            </button>
+          ) : null}
           <h1>Tu código</h1>
           <p className="muted">Muéstralo para que un admin te escanee.</p>
         </header>
@@ -138,9 +147,14 @@ export function Equipo() {
 
   return (
     <Screen>
-      <header className="screen-header">
-        <h1>Equipo & WhatsApp</h1>
-        <p className="muted">Invita clientes por QR o WhatsApp. Escanea como admin.</p>
+      <header className="screen-header row">
+        {onBack ? (
+          <button type="button" className="link-btn" onClick={onBack}>
+            ← Volver
+          </button>
+        ) : null}
+        <h1>Equipo</h1>
+        <p className="muted small">Invita y registra con WhatsApp o QR.</p>
       </header>
 
       <div className="action-grid">

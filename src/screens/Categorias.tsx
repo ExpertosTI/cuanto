@@ -8,9 +8,10 @@ import type { TransactionType } from '../types'
 
 interface CategoriasProps {
   onBack: () => void
+  onOpenEquipo?: () => void
 }
 
-export function Categorias({ onBack }: CategoriasProps) {
+export function Categorias({ onBack, onOpenEquipo }: CategoriasProps) {
   const { categories, addCategory, updateCategory, deleteCategory } = useStore()
   const [type, setType] = useState<TransactionType>('expense')
   const [name, setName] = useState('')
@@ -48,7 +49,12 @@ export function Categorias({ onBack }: CategoriasProps) {
           ← Volver
         </button>
         <h1>Categorías</h1>
-        <p className="muted small">Renombra Salario, Remesas u otros a tu gusto.</p>
+        <p className="muted small">Gestiona nombres, íconos y colores.</p>
+        {onOpenEquipo ? (
+          <button type="button" className="btn-secondary btn-block" onClick={onOpenEquipo}>
+            Equipo e invitaciones
+          </button>
+        ) : null}
       </header>
 
       <div className="type-toggle">
