@@ -8,11 +8,12 @@ import type { TransactionType } from '../types'
 interface AgregarProps {
   onDone: () => void
   onManageCategories: () => void
+  initialType?: TransactionType
 }
 
-export function Agregar({ onDone, onManageCategories }: AgregarProps) {
+export function Agregar({ onDone, onManageCategories, initialType = 'expense' }: AgregarProps) {
   const { categories, addTransaction } = useStore()
-  const [type, setType] = useState<TransactionType>('expense')
+  const [type, setType] = useState<TransactionType>(initialType)
   const [amount, setAmount] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))

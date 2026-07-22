@@ -19,12 +19,18 @@ function AppShell() {
   const { settings } = useStore()
   const [tab, setTab] = useState<Tab>('resumen')
   const [returnTab, setReturnTab] = useState<Tab>('resumen')
+  const [addType, setAddType] = useState<'expense' | 'income'>('expense')
 
   if (!settings.onboardingDone) {
     return <Onboarding />
   }
 
   const hideNav = tab === 'categorias' || tab === 'equipo'
+
+  function openAdd(type: 'expense' | 'income' = 'expense') {
+    setAddType(type)
+    setTab('agregar')
+  }
 
   return (
     <div className="app-shell">
@@ -36,11 +42,12 @@ function AppShell() {
 
       <main className="app-main">
         <AnimatePresence mode="wait">
-          {tab === 'resumen' && <Resumen key="resumen" onAdd={() => setTab('agregar')} />}
+          {tab === 'resumen' && <Resumen key="resumen" onAdd={openAdd} />}
           {tab === 'movimientos' && <Movimientos key="movimientos" />}
           {tab === 'agregar' && (
             <Agregar
-              key="agregar"
+              key={`agregar-${addType}`}
+              initialType={addType}
               onDone={() => setTab('movimientos')}
               onManageCategories={() => {
                 setReturnTab('agregar')
@@ -80,7 +87,7 @@ function AppShell() {
           <button
             type="button"
             className={tab === 'agregar' ? 'active' : ''}
-            onClick={() => setTab('agregar')}
+            onClick={() => openAdd('expense')}
           >
             <PlusCircle size={22} />
             <span>Agregar</span>

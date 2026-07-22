@@ -255,6 +255,55 @@ p {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(8px);
+  text-align: left;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+}
+
+.balance-split .chip-action {
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.balance-split .chip-action:active {
+  transform: scale(0.97);
+}
+
+.balance-split .chip-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.balance-split .chip-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.balance-split .income-chip .chip-icon {
+  background: rgba(154, 240, 192, 0.22);
+  color: #9af0c0;
+}
+
+.balance-split .expense-chip .chip-icon {
+  background: rgba(255, 184, 170, 0.22);
+  color: #ffb8aa;
+}
+
+.balance-split .chip-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.78;
 }
 
 .balance-split .income-chip {
@@ -265,6 +314,16 @@ p {
 .balance-split .expense-chip {
   background: rgba(255, 150, 130, 0.18);
   border-color: rgba(255, 190, 175, 0.42);
+}
+
+.balance-split .income-chip.chip-action:hover {
+  background: rgba(120, 230, 170, 0.28);
+  border-color: rgba(180, 255, 210, 0.6);
+}
+
+.balance-split .expense-chip.chip-action:hover {
+  background: rgba(255, 150, 130, 0.26);
+  border-color: rgba(255, 190, 175, 0.55);
 }
 
 .balance-split .muted {
