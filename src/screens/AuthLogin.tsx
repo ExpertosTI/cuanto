@@ -18,16 +18,11 @@ type Step = 'identity' | 'otp'
 export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
   const [mode, setMode] = useState<Mode>('choose')
   const [step, setStep] = useState<Step>('identity')
-  const [email, setEmail] = useState(
-    import.meta.env.VITE_MASTER_EMAIL || 'expertostird@gmail.com',
-  )
+  const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
   const [challenge, setChallenge] = useState('')
-  const [hint, setHint] = useState('')
-  const [confirmUrl, setConfirmUrl] = useState('')
-  const [devCode, setDevCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -49,9 +44,6 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
         return
       }
       setChallenge(res.challenge)
-      setHint(res.message || '')
-      setConfirmUrl(res.confirmUrl || '')
-      setDevCode(res.devCode || '')
       setStep('otp')
     } finally {
       setLoading(false)
@@ -74,7 +66,6 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
     }
   }
 
-  const isMasterPhone = mode === 'master_phone'
   const isMasterEmail = mode === 'master_email'
 
   return (
@@ -83,7 +74,6 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
         <div className="auth-brand">
           <Shield size={28} />
           <h1>Cuanto</h1>
-          <p className="muted">Acceso seguro · Pro y equipos</p>
         </div>
 
         {mode === 'choose' ? (
@@ -94,20 +84,16 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
               onClick={() => setMode('master_phone')}
             >
               <MessageCircle size={18} />
-              Master · mi WhatsApp (configurar)
+              Master
             </button>
             <button type="button" className="btn-secondary btn-block" onClick={() => setMode('tenant')}>
               <MessageCircle size={18} />
-              Cliente · activar con mi número
+              Cliente
             </button>
             <button type="button" className="link-btn" onClick={() => setMode('master_email')}>
               <Mail size={14} />
-              Master · OTP por correo
+              Correo
             </button>
-            <p className="muted small auth-note">
-              Master: entra con tu WhatsApp o con <strong>expertostird@gmail.com</strong>. Los OTP
-              salen desde <strong>info@renace.tech</strong>.
-            </p>
           </div>
         ) : null}
 
@@ -118,43 +104,38 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
             </button>
             {isMasterEmail ? (
               <label className="field">
-                <span className="field-label">Correo master</span>
+                <span className="field-label">Correo</span>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
+                  autoFocus
                 />
               </label>
             ) : (
               <>
                 <label className="field">
-                  <span className="field-label">{isMasterPhone ? 'Tu nombre (master)' : 'Tu nombre'}</span>
-                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" />
+                  <span className="field-label">Nombre</span>
+                  <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
                 </label>
                 <label className="field">
-                  <span className="field-label">WhatsApp (con código país)</span>
+                  <span className="field-label">WhatsApp</span>
                   <input
                     type="tel"
                     inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="1809XXXXXXX"
                     required
+                    autoFocus
                   />
                 </label>
-                {isMasterPhone ? (
-                  <p className="muted small">
-                    Si Evolution aún no está conectado, el código llega al correo master (SMTP). Luego
-                    escaneás el QR.
-                  </p>
-                ) : null}
               </>
             )}
             {error ? <p className="form-error">{error}</p> : null}
             <button type="submit" className="btn-primary btn-block" disabled={loading}>
-              {loading ? 'Enviando…' : 'Enviar código OTP'}
+              {loading ? 'Enviando…' : 'Enviar OTP'}
             </button>
           </form>
         ) : null}
@@ -169,35 +150,23 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
                 setCode('')
               }}
             >
-              ← Cambiar {isMasterEmail ? 'correo' : 'número'}
+              ← Volver
             </button>
-            <p className="muted small">{hint}</p>
-            {devCode ? (
-              <p className="auth-dev">
-                Código (dev): <strong>{devCode}</strong>
-              </p>
-            ) : null}
-            {confirmUrl ? (
-              <a className="btn-secondary btn-block" href={confirmUrl} target="_blank" rel="noreferrer">
-                <MessageCircle size={16} />
-                Abrir WhatsApp
-              </a>
-            ) : null}
             <label className="field">
-              <span className="field-label">Código de 6 dígitos</span>
+              <span className="field-label">Código</span>
               <input
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
                 required
+                autoFocus
               />
             </label>
             {error ? <p className="form-error">{error}</p> : null}
             <button type="submit" className="btn-primary btn-block" disabled={loading || code.length < 6}>
-              {loading ? 'Verificando…' : 'Entrar'}
+              {loading ? '…' : 'Entrar'}
             </button>
           </form>
         ) : null}

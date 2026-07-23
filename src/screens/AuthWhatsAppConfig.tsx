@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { MessageCircle, QrCode, RefreshCw, Unplug } from 'lucide-react'
+import { QrCode, RefreshCw, Unplug } from 'lucide-react'
 import { FadeIn, Screen } from '../components/Motion'
 import { loadAuthToken, updateAuthSession, type AuthSession } from '../lib/auth'
 
@@ -14,7 +14,6 @@ type QrPayload = {
   qrBase64?: string | null
   connected?: boolean
   message?: string
-  /** Número real descubierto en Evolution (ownerJid), no hardcode */
   ownerNumber?: string
   instance?: string
   error?: string
@@ -26,7 +25,15 @@ function apiUrl(path: string) {
   return `${base}${path}`
 }
 
-export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppConfigProps) {
+function shortError(raw: string) {
+  const t = raw.toLowerCase()
+  if (t.includes('evolution') || t.includes('not_configured') || t.includes('api_key') || t.includes('api_url')) {
+    return 'WhatsApp no configurado en el servidor.'
+  }
+  return raw.slice(0, 120)
+}
+
+export function AuthWhatsAppConfig({ session: _session, onDone, onLogout }: AuthWhatsAppConfigProps) {
   const [qr, setQr] = useState<QrPayload | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -42,7 +49,7 @@ export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppCo
       })
       const data = (await res.json()) as QrPayload
       if (!res.ok && !data.qrBase64 && !data.connected) {
-        setError(data.message || data.detail || data.error || 'No se pudo obtener el QR')
+        setError(shortError(data.message || data.detail || data.error || 'No se pudo obtener el QR'))
       }
       setQr(data)
     } catch (e) {
@@ -71,7 +78,7 @@ export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppCo
         phone: qr?.ownerNumber || '',
       })
       if (!res.ok || !res.session) {
-        setError(res.error || 'No se pudo guardar la sesión. Revisá cuanto-api / Evolution.')
+        setError(res.error || 'No se pudo continuar')
         return
       }
       onDone(res.session)
@@ -98,47 +105,25 @@ export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppCo
     <Screen className="auth-screen">
       <FadeIn className="auth-card">
         <header className="screen-header row">
-          <h1>Conectar WhatsApp</h1>
-          <p className="muted small">
-            Master {session.email}. Escaneá el QR de Evolution (evoapi) con la línea de Renace.
-          </p>
+          <h1>WhatsApp</h1>
         </header>
 
         <div className="evo-panel">
           <div className="evo-status">
             <QrCode size={18} />
-            <span>
-              {qr?.connected
-                ? 'Conectado'
-                : loading
-                  ? 'Cargando QR…'
-                  : qr?.instance
-                    ? `Instancia · ${qr.instance}`
-                    : 'Evolution'}
-            </span>
+            <span>{qr?.connected ? 'Conectado' : loading ? 'Cargando…' : 'Escanear QR'}</span>
           </div>
 
-          {qr?.ownerNumber ? (
-            <p className="muted small">Línea conectada (Evolution): +{qr.ownerNumber}</p>
-          ) : qr?.instance && !qr.connected ? (
-            <p className="muted small">Instancia «{qr.instance}» — escaneá el QR para descubrir el número.</p>
-          ) : null}
-
           {qr?.qrBase64 && !qr.connected ? (
-            <img className="evo-qr" src={qr.qrBase64} alt="QR WhatsApp Evolution" />
+            <img className="evo-qr" src={qr.qrBase64} alt="QR WhatsApp" />
           ) : null}
 
-          {qr?.connected ? (
-            <p className="pro-ok">WhatsApp listo en Evolution. Los clientes recibirán OTP por WA.</p>
-          ) : null}
-
-          {qr?.message ? <p className="muted small">{qr.message}</p> : null}
           {error ? <p className="form-error">{error}</p> : null}
 
           <div className="evo-actions">
             <button type="button" className="btn-secondary" onClick={() => void loadQr()} disabled={loading || busy}>
               <RefreshCw size={16} />
-              Actualizar QR
+              Actualizar
             </button>
             {qr?.connected ? (
               <button type="button" className="btn-secondary" onClick={() => void disconnect()} disabled={busy}>
@@ -154,12 +139,11 @@ export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppCo
             onClick={() => void continueReady()}
             disabled={busy || (!qr?.connected && !qr?.qrBase64 && Boolean(error))}
           >
-            <MessageCircle size={18} />
-            {qr?.connected ? 'Continuar' : 'Ya escaneé · Continuar'}
+            {qr?.connected ? 'Continuar' : 'Continuar'}
           </button>
 
           <button type="button" className="link-btn" onClick={onLogout}>
-            Cerrar sesión
+            Salir
           </button>
         </div>
       </FadeIn>

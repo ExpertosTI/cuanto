@@ -91,11 +91,7 @@ function AppShell() {
       ) : null}
 
       <div className="auth-strip">
-        <span className="muted small">
-          {auth.role === 'master'
-            ? `Master · ${auth.phone || auth.email}`
-            : `Cliente · ${auth.phone}${auth.plan === 'pro' ? ' · Pro' : ''}`}
-        </span>
+        <span className="muted small">{auth.role === 'master' ? 'Master' : auth.plan === 'pro' ? 'Pro' : 'Cliente'}</span>
         <span className="auth-strip-actions">
           {auth.role === 'master' ? (
             <button type="button" className="link-btn" onClick={() => setTab('admin')}>
