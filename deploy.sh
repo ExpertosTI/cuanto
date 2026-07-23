@@ -63,6 +63,69 @@ load_env_file() {
 
 load_env_file .env || true
 
+# Reutilizar Evolution de otros stacks Renace en el mismo VPS (sin inventar keys)
+discover_evolution() {
+  local f key val
+  if [ -n "${EVOLUTION_API_URL:-}" ] && [ -n "${EVOLUTION_API_KEY:-}" ]; then
+    return 0
+  fi
+  for f in \
+    /opt/cuanto/.evolution.local \
+    /opt/presta_pro/.evolution.local \
+    /opt/presta_pro/.env \
+    /opt/rnv-manger/.evolution.local \
+    /opt/rnv-manger/.env \
+    /opt/citas/.evolution.local \
+    /opt/citas/.env \
+    /opt/rk/.evolution.local \
+    /opt/rk/.env \
+    /opt/raices/.evolution.local \
+    /opt/raices/.env
+  do
+    [ -f "$f" ] || continue
+    if [ -z "${EVOLUTION_API_KEY:-}" ]; then
+      val="$(grep -E '^EVOLUTION_API_KEY=' "$f" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+      [ -n "$val" ] && EVOLUTION_API_KEY="$val"
+    fi
+    if [ -z "${EVOLUTION_API_URL:-}" ]; then
+      val="$(grep -E '^EVOLUTION_API_URL=' "$f" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+      [ -n "$val" ] && EVOLUTION_API_URL="$val"
+    fi
+    if [ -z "${EVOLUTION_INSTANCE:-}" ]; then
+      val="$(grep -E '^EVOLUTION_INSTANCE=' "$f" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+      [ -n "$val" ] && EVOLUTION_INSTANCE="$val"
+    fi
+    if [ -n "${EVOLUTION_API_KEY:-}" ] && [ -n "${EVOLUTION_API_URL:-}" ]; then
+      green "   Evolution ← $f"
+      break
+    fi
+  done
+  # Misma red Swarm → URL interna (evita Cloudflare 502)
+  if [ -n "${EVOLUTION_API_KEY:-}" ] && { [ -z "${EVOLUTION_API_URL:-}" ] || [[ "${EVOLUTION_API_URL}" == https://evoapi* ]]; }; then
+    if docker network inspect RenaceNet >/dev/null 2>&1; then
+      EVOLUTION_API_URL="http://evolution_api:8080"
+    else
+      EVOLUTION_API_URL="${EVOLUTION_API_URL:-https://evoapi.renace.tech}"
+    fi
+  fi
+  # Key del stack Evolution si existe AUTHENTICATION_API_KEY
+  if [ -z "${EVOLUTION_API_KEY:-}" ]; then
+    for f in /opt/evolution*/.env /opt/*/evolution*/.env /root/evolution*/.env; do
+      [ -f "$f" ] || continue
+      val="$(grep -E '^AUTHENTICATION_API_KEY=' "$f" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '\r' | sed -e "s/^['\"]//" -e "s/['\"]$//")"
+      if [ -n "$val" ] && [ "$val" != "CHANGE_ME" ]; then
+        EVOLUTION_API_KEY="$val"
+        EVOLUTION_API_URL="${EVOLUTION_API_URL:-http://evolution_api:8080}"
+        green "   Evolution key ← $f"
+        break
+      fi
+    done
+  fi
+  export EVOLUTION_API_URL EVOLUTION_API_KEY EVOLUTION_INSTANCE
+}
+
+discover_evolution
+
 gen_secret() {
   if command -v openssl >/dev/null 2>&1; then
     openssl rand -hex 32
