@@ -40,13 +40,28 @@ fi
 
 cd "$PROJECT_DIR"
 
-# Load existing .env so SMTP / Evolution secrets survive
-if [ -f .env ]; then
+# Cargar .env previo sin romper el script (SMTP_FROM con <...> rompía bash)
+load_env_file() {
+  local file="$1"
+  [ -f "$file" ] || return 0
+  # Autoreparar línea SMTP_FROM sin comillas
+  if grep -qE '^SMTP_FROM=Cuanto <' "$file" 2>/dev/null; then
+    sed -i "s|^SMTP_FROM=Cuanto <info@renace.tech>|SMTP_FROM='Cuanto <info@renace.tech>'|" "$file" 2>/dev/null || true
+    sed -i 's|^SMTP_FROM=\([^'\''"].*\)$|SMTP_FROM='\''\1'\''|' "$file" 2>/dev/null || true
+  fi
   set -a
   # shellcheck disable=SC1091
-  source .env
+  if ! source "$file"; then
+    yellow "   .env inválido — se respalda y regenera (secretos Evolution se pedirán de nuevo si no estaban exportados)"
+    mv -f "$file" "${file}.broken.$(date +%s)" 2>/dev/null || rm -f "$file"
+    set +a
+    return 1
+  fi
   set +a
-fi
+  return 0
+}
+
+load_env_file .env || true
 
 gen_secret() {
   if command -v openssl >/dev/null 2>&1; then
