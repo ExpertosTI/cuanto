@@ -31,11 +31,8 @@ function renderText(content: string) {
 function agentEndpoint() {
   const configured = (import.meta.env.VITE_AGENT_URL || '').trim()
   if (configured) return configured.replace(/\/$/, '')
-  // Netlify Functions path when hosted there
-  if (typeof window !== 'undefined' && window.location.hostname.includes('netlify')) {
-    return '/api/agent'
-  }
-  return ''
+  // Same-origin API on VPS
+  return '/api/agent'
 }
 
 export function CuantoAgent() {

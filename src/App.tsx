@@ -51,7 +51,7 @@ function AppShell() {
     return <AuthLogin onAuthenticated={handleAuthenticated} />
   }
 
-  if (auth.role === 'master' && !auth.whatsappBusiness) {
+  if (auth.role === 'master' && !(auth.whatsappBusiness || auth.evoReady)) {
     return (
       <AuthWhatsAppConfig
         session={auth}

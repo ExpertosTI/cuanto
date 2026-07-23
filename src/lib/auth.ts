@@ -7,27 +7,23 @@ export interface AuthSession {
   name?: string
   plan: 'free' | 'pro'
   whatsappBusiness?: string
+  /** Master ya vinculó Evolution (QR escaneado) */
+  evoReady?: boolean
   exp: number
 }
 
 const AUTH_KEY = 'cuanto-auth-v1'
 const TOKEN_KEY = 'cuanto-auth-token'
 
+/** Same-origin on VPS (Traefik /api → cuanto-api). Optional absolute VITE_AUTH_URL. */
 function authBase() {
-  const configured = (import.meta.env.VITE_AUTH_URL || '').trim().replace(/\/$/, '')
-  if (configured) return configured
-  if (typeof window !== 'undefined' && window.location.hostname.includes('netlify')) {
-    return ''
-  }
-  return ''
+  return (import.meta.env.VITE_AUTH_URL || '').trim().replace(/\/$/, '')
 }
 
 function endpoint(path: string) {
   const base = authBase()
-  if (base) return `${base}${path}`
-  // Same-origin Netlify redirects
-  if (path.startsWith('/api/')) return path
-  return `/.netlify/functions/${path.replace(/^\//, '')}`
+  if (path.startsWith('/api/')) return `${base}${path}`
+  return `${base}/api/${path.replace(/^\//, '')}`
 }
 
 export function loadAuthToken(): string | null {
@@ -206,9 +202,11 @@ export async function updateAuthSession(action: string, body: Record<string, unk
   if (token.startsWith('local-session.')) {
     const session = loadAuthSession()
     if (!session) return { ok: false, error: 'Sin sesión' }
-    if (action === 'set_whatsapp') {
-      const phone = String(body.phone || '').replace(/\D/g, '')
-      const next = { ...session, whatsappBusiness: phone }
+    if (action === 'set_whatsapp' || action === 'mark_evo_ready') {
+      const phone =
+        String(body.phone || session.whatsappBusiness || import.meta.env.VITE_WHATSAPP_BUSINESS || '')
+          .replace(/\D/g, '') || '18494577463'
+      const next = { ...session, whatsappBusiness: phone, evoReady: true }
       saveAuth(token, next)
       return { ok: true, session: next }
     }

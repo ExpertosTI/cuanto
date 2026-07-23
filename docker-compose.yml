@@ -2,8 +2,7 @@
 #  Stack:       cuanto
 #  Domain:      ${DOMAIN:-cuanto.renace.tech}
 #  Network:     RenaceNet (overlay externa)
-#  Entrypoints: web (:80), websecure (:443)
-#  Cert:        letsencryptresolver
+#  API:         PathPrefix(/api) → cuanto-api (SMTP + Evolution QR/OTP)
 
 services:
   web:
@@ -15,6 +14,9 @@ services:
         VITE_INSFORGE_URL: ${VITE_INSFORGE_URL:-}
         VITE_INSFORGE_ANON_KEY: ${VITE_INSFORGE_ANON_KEY:-}
         VITE_WHATSAPP_BUSINESS: ${VITE_WHATSAPP_BUSINESS:-}
+        VITE_PRO_CODE: ${VITE_PRO_CODE:-CUANTO-PRO}
+        VITE_MASTER_EMAIL: ${VITE_MASTER_EMAIL:-info@renace.tech}
+        VITE_AUTH_URL: ${VITE_AUTH_URL:-}
     networks:
       - RenaceNet
     deploy:
@@ -43,6 +45,7 @@ services:
         - traefik.http.routers.cuanto-http.rule=Host(`${DOMAIN:-cuanto.renace.tech}`)
         - traefik.http.routers.cuanto-http.entrypoints=web
         - traefik.http.routers.cuanto-http.middlewares=cuanto-redirect-https
+        - traefik.http.routers.cuanto-http.priority=10
 
         - traefik.http.routers.cuanto.rule=Host(`${DOMAIN:-cuanto.renace.tech}`)
         - traefik.http.routers.cuanto.entrypoints=websecure
@@ -50,6 +53,7 @@ services:
         - traefik.http.routers.cuanto.tls.certresolver=letsencryptresolver
         - traefik.http.routers.cuanto.service=cuanto-svc
         - traefik.http.routers.cuanto.middlewares=cuanto-security
+        - traefik.http.routers.cuanto.priority=10
 
         - traefik.http.services.cuanto-svc.loadbalancer.server.port=80
         - traefik.http.services.cuanto-svc.loadbalancer.healthcheck.path=/healthz
@@ -64,6 +68,76 @@ services:
         - traefik.http.middlewares.cuanto-security.headers.contentTypeNosniff=true
         - traefik.http.middlewares.cuanto-security.headers.frameDeny=true
         - traefik.http.middlewares.cuanto-security.headers.referrerPolicy=strict-origin-when-cross-origin
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    image: cuanto-api:latest
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      PORT: "3000"
+      AUTH_SECRET: ${AUTH_SECRET:-}
+      MASTER_EMAILS: ${MASTER_EMAILS:-info@renace.tech}
+      AUTH_DEV_SHOW_CODE: ${AUTH_DEV_SHOW_CODE:-0}
+      SMTP_HOST: ${SMTP_HOST:-smtp.hostinger.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-info@renace.tech}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-Cuanto <info@renace.tech>}
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL:-https://evoapi.renace.tech}
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
+      EVOLUTION_INSTANCE: ${EVOLUTION_INSTANCE:-cuanto}
+      WHATSAPP_BUSINESS: ${WHATSAPP_BUSINESS:-18494577463}
+      VITE_WHATSAPP_BUSINESS: ${VITE_WHATSAPP_BUSINESS:-18494577463}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    networks:
+      - RenaceNet
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        order: start-first
+        parallelism: 1
+        failure_action: rollback
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          cpus: "0.05"
+          memory: 48M
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=RenaceNet
+        - traefik.constraint-label=traefik-public
+
+        - traefik.http.routers.cuanto-api-http.rule=Host(`${DOMAIN:-cuanto.renace.tech}`) && PathPrefix(`/api`)
+        - traefik.http.routers.cuanto-api-http.entrypoints=web
+        - traefik.http.routers.cuanto-api-http.middlewares=cuanto-redirect-https
+        - traefik.http.routers.cuanto-api-http.priority=100
+        - traefik.http.routers.cuanto-api-http.service=cuanto-api-svc
+
+        - traefik.http.routers.cuanto-api.rule=Host(`${DOMAIN:-cuanto.renace.tech}`) && PathPrefix(`/api`)
+        - traefik.http.routers.cuanto-api.entrypoints=websecure
+        - traefik.http.routers.cuanto-api.tls=true
+        - traefik.http.routers.cuanto-api.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.cuanto-api.priority=100
+        - traefik.http.routers.cuanto-api.service=cuanto-api-svc
+        - traefik.http.routers.cuanto-api.middlewares=cuanto-security
+
+        - traefik.http.services.cuanto-api-svc.loadbalancer.server.port=3000
+        - traefik.http.services.cuanto-api-svc.loadbalancer.healthcheck.path=/healthz
+        - traefik.http.services.cuanto-api-svc.loadbalancer.healthcheck.interval=30s
 
     logging:
       driver: json-file

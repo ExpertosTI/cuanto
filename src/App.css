@@ -2058,6 +2058,35 @@ p {
   padding: 6px 14px 0;
 }
 
+.evo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.evo-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--brand-deep);
+}
+
+.evo-qr {
+  width: min(260px, 100%);
+  margin: 0 auto;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 10px;
+}
+
+.evo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* ── Temas ─────────────────────────────────────────────── */
 [data-theme='oceano'] {
   --bg: #eef4f8;
