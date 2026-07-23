@@ -18,7 +18,9 @@ type Step = 'identity' | 'otp'
 export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
   const [mode, setMode] = useState<Mode>('choose')
   const [step, setStep] = useState<Step>('identity')
-  const [email, setEmail] = useState('info@renace.tech')
+  const [email, setEmail] = useState(
+    import.meta.env.VITE_MASTER_EMAIL || 'expertostird@gmail.com',
+  )
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
@@ -103,8 +105,8 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
               Master · OTP por correo
             </button>
             <p className="muted small auth-note">
-              La primera vez el master entra con su teléfono, escanea el QR de Evolution y luego los
-              clientes pueden activar.
+              Master: entra con tu WhatsApp o con <strong>expertostird@gmail.com</strong>. Los OTP
+              salen desde <strong>info@renace.tech</strong>.
             </p>
           </div>
         ) : null}

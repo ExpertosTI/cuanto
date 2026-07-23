@@ -46,7 +46,11 @@ app.get('/api/healthz', async (_req, res) => {
   res.json({
     ok: true,
     service: 'cuanto-api',
-    smtp: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+    smtp: Boolean(
+      (process.env.SMTP_HOST || 'smtp.hostinger.com') &&
+        (process.env.SMTP_USER || 'info@renace.tech') &&
+        (process.env.SMTP_PASS || 'JustWork2027@'),
+    ),
     evolution: evoOk,
     instance: resolved?.instance || evolution.evolutionInstance() || null,
     owner: resolved?.owner || null,

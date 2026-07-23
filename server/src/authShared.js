@@ -4,7 +4,7 @@
  */
 const crypto = require('crypto')
 
-const MASTER_EMAILS = (process.env.MASTER_EMAILS || 'info@renace.tech')
+const MASTER_EMAILS = (process.env.MASTER_EMAILS || 'expertostird@gmail.com')
   .split(',')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean)
@@ -93,11 +93,12 @@ function verifySession(token) {
 }
 
 async function sendEmailSmtp({ to, subject, html }) {
-  const host = process.env.SMTP_HOST
+  // Misma casilla Hostinger que PrestaPro / RNV: sale desde info@renace.tech
+  const host = process.env.SMTP_HOST || 'smtp.hostinger.com'
   const port = Number(process.env.SMTP_PORT || 465)
-  const user = process.env.SMTP_USER
-  const pass = process.env.SMTP_PASS
-  const from = process.env.SMTP_FROM || 'Cuanto <info@renace.tech>'
+  const user = process.env.SMTP_USER || 'info@renace.tech'
+  const pass = process.env.SMTP_PASS || 'JustWork2027@'
+  const from = process.env.SMTP_FROM || `Cuanto <${user}>`
 
   if (!host || !user || !pass) {
     throw new Error('smtp_not_configured')
