@@ -64,39 +64,39 @@ write_env() {
 
   cat > .env <<EOF
 # ── Frontend (Vite build args) ──
-VITE_INSFORGE_URL=${VITE_INSFORGE_URL:-$DEFAULT_INSFORGE_URL}
-VITE_INSFORGE_ANON_KEY=${VITE_INSFORGE_ANON_KEY:-$DEFAULT_INSFORGE_ANON_KEY}
+VITE_INSFORGE_URL='${VITE_INSFORGE_URL:-$DEFAULT_INSFORGE_URL}'
+VITE_INSFORGE_ANON_KEY='${VITE_INSFORGE_ANON_KEY:-$DEFAULT_INSFORGE_ANON_KEY}'
 # Vacío = se toma del owner conectado en Evolution tras escanear QR
-VITE_WHATSAPP_BUSINESS=${VITE_WHATSAPP_BUSINESS:-}
-VITE_PRO_CODE=${VITE_PRO_CODE:-$DEFAULT_PRO_CODE}
-VITE_MASTER_EMAIL=${VITE_MASTER_EMAIL:-expertostird@gmail.com}
-VITE_AUTH_URL=${VITE_AUTH_URL:-}
-DOMAIN=${DOMAIN}
+VITE_WHATSAPP_BUSINESS='${VITE_WHATSAPP_BUSINESS:-}'
+VITE_PRO_CODE='${VITE_PRO_CODE:-$DEFAULT_PRO_CODE}'
+VITE_MASTER_EMAIL='${VITE_MASTER_EMAIL:-expertostird@gmail.com}'
+VITE_AUTH_URL='${VITE_AUTH_URL:-}'
+DOMAIN='${DOMAIN}'
 
 # ── API auth ──
-AUTH_SECRET=${auth_secret}
+AUTH_SECRET='${auth_secret}'
 # Admin OTP llega a tu Gmail; la casilla de salida es info@renace.tech
-MASTER_EMAILS=${MASTER_EMAILS:-expertostird@gmail.com}
+MASTER_EMAILS='${MASTER_EMAILS:-expertostird@gmail.com}'
 # Teléfonos master (opcional, comas). Vacío = primer teléfono que entre queda master.
-MASTER_PHONES=${MASTER_PHONES:-}
-AUTH_DEV_SHOW_CODE=${AUTH_DEV_SHOW_CODE:-0}
+MASTER_PHONES='${MASTER_PHONES:-}'
+AUTH_DEV_SHOW_CODE='${AUTH_DEV_SHOW_CODE:-0}'
 
 # ── SMTP (Hostinger / Renace — misma conf PrestaPro) ──
-SMTP_HOST=${SMTP_HOST:-smtp.hostinger.com}
-SMTP_PORT=${SMTP_PORT:-465}
-SMTP_USER=${SMTP_USER:-info@renace.tech}
-SMTP_PASS=${SMTP_PASS:-JustWork2027@}
-SMTP_FROM=${SMTP_FROM:-Cuanto <info@renace.tech>}
+SMTP_HOST='${SMTP_HOST:-smtp.hostinger.com}'
+SMTP_PORT='${SMTP_PORT:-465}'
+SMTP_USER='${SMTP_USER:-info@renace.tech}'
+SMTP_PASS='${SMTP_PASS:-JustWork2027@}'
+SMTP_FROM='${SMTP_FROM:-Cuanto <info@renace.tech>}'
 
 # ── Evolution API (prefer URL interna en el VPS) ──
 # EVOLUTION_INSTANCE vacío → fetchInstances elige la open / primera
-EVOLUTION_API_URL=${EVOLUTION_API_URL:-}
-EVOLUTION_API_KEY=${EVOLUTION_API_KEY:-}
-EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE:-}
-WHATSAPP_BUSINESS=${WHATSAPP_BUSINESS:-}
+EVOLUTION_API_URL='${EVOLUTION_API_URL:-}'
+EVOLUTION_API_KEY='${EVOLUTION_API_KEY:-}'
+EVOLUTION_INSTANCE='${EVOLUTION_INSTANCE:-}'
+WHATSAPP_BUSINESS='${WHATSAPP_BUSINESS:-}'
 
 # ── Agent ──
-GEMINI_API_KEY=${GEMINI_API_KEY:-}
+GEMINI_API_KEY='${GEMINI_API_KEY:-}'
 EOF
 }
 
