@@ -13,6 +13,24 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/auth/request-otp"
+  to = "/.netlify/functions/auth-request-otp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/auth/verify-otp"
+  to = "/.netlify/functions/auth-verify-otp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/auth/session"
+  to = "/.netlify/functions/auth-session"
+  status = 200
+  force = true
+
 # SPA
 [[redirects]]
   from = "/*"

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Check, Cloud, Download, MessageCircle, Sparkles, Users } from 'lucide-react'
 import { FadeIn, Screen } from '../components/Motion'
 import { useStore } from '../store'
+import { updateAuthSession, type AuthSession } from '../lib/auth'
 import { whatsappChatUrl } from '../lib/whatsapp'
 
 const PRO_PRICE = '$1.99 USD / mes'
@@ -10,9 +11,13 @@ const DEFAULT_PRO_CODE = 'CUANTO-PRO'
 
 interface ProProps {
   onBack: () => void
+  auth?: AuthSession | null
+  onAuthChange?: (session: AuthSession) => void
 }
 
-function businessPhone() {
+function businessPhone(auth?: AuthSession | null) {
+  const fromAuth = (auth?.whatsappBusiness || '').replace(/\D/g, '')
+  if (fromAuth) return fromAuth
   return (import.meta.env.VITE_WHATSAPP_BUSINESS || '').replace(/\D/g, '')
 }
 
@@ -20,23 +25,28 @@ function expectedProCode() {
   return (import.meta.env.VITE_PRO_CODE || DEFAULT_PRO_CODE).trim().toUpperCase()
 }
 
-export function Pro({ onBack }: ProProps) {
+export function Pro({ onBack, auth, onAuthChange }: ProProps) {
   const { settings, memberCode, isPro, activatePro } = useStore()
   const [code, setCode] = useState('')
+  const [tenantPhone, setTenantPhone] = useState('')
   const [error, setError] = useState('')
   const [ok, setOk] = useState(false)
+  const [grantMsg, setGrantMsg] = useState('')
+
+  const isMaster = auth?.role === 'master'
 
   const payUrl = useMemo(() => {
-    const phone = businessPhone()
+    const phone = businessPhone(auth)
     if (!phone) return ''
     const msg = [
       `Hola, quiero activar *Cuanto Pro* (${PRO_PRICE}).`,
-      `Nombre: ${settings.userName || '—'}`,
+      `Nombre: ${settings.userName || auth?.name || '—'}`,
       `Espacio: ${settings.orgName || '—'}`,
+      `Tel: ${auth?.phone || settings.phoneWhatsapp || '—'}`,
       `Código miembro: ${memberCode}`,
     ].join('\n')
     return whatsappChatUrl(phone, msg)
-  }, [memberCode, settings.orgName, settings.userName])
+  }, [auth, memberCode, settings.orgName, settings.phoneWhatsapp, settings.userName])
 
   function handleActivate(e: FormEvent) {
     e.preventDefault()
@@ -50,8 +60,29 @@ export function Pro({ onBack }: ProProps) {
       return
     }
     activatePro()
+    void updateAuthSession('set_own_plan', { plan: 'pro' }).then((res) => {
+      if (res.session) onAuthChange?.(res.session)
+    })
     setError('')
     setOk(true)
+  }
+
+  async function grantPro(e: FormEvent) {
+    e.preventDefault()
+    setGrantMsg('')
+    setError('')
+    const res = await updateAuthSession('set_plan', {
+      phone: tenantPhone,
+      plan: 'pro',
+    })
+    if (!res.ok) {
+      setError(res.error || 'No se pudo generar el grant')
+      return
+    }
+    // En modo local, activamos referencia; el cliente aplica al loguearse o con código Pro
+    setGrantMsg(
+      `Pro autorizado para ${tenantPhone.replace(/\D/g, '')}. Pedile que entre con su WhatsApp y active con el código Pro, o reenviá CUANTO-PRO.`,
+    )
   }
 
   return (
@@ -61,7 +92,9 @@ export function Pro({ onBack }: ProProps) {
           ← Volver
         </button>
         <h1>Cuanto Pro</h1>
-        <p className="muted small">Subí de nivel sin complicaciones.</p>
+        <p className="muted small">
+          {isMaster ? 'Gestioná suscripciones Pro de clientes.' : 'Subí de nivel sin complicaciones.'}
+        </p>
       </header>
 
       <FadeIn className="pro-hero">
@@ -69,11 +102,19 @@ export function Pro({ onBack }: ProProps) {
           <Sparkles size={14} />
           {isPro ? 'Activo' : PRO_PRICE}
         </span>
-        <h2>{isPro ? 'Tu plan Pro está activo' : 'Más control por casi nada'}</h2>
+        <h2>
+          {isMaster
+            ? 'Panel Pro · Master'
+            : isPro
+              ? 'Tu plan Pro está activo'
+              : 'Más control por casi nada'}
+        </h2>
         <p className="muted">
-          {isPro
-            ? 'Gracias por apoyar Cuanto. Ya tenés exportar, equipo ampliado y respaldo.'
-            : 'Pagás por WhatsApp, te damos un código y listo. Sin tarjeta en la app.'}
+          {isMaster
+            ? 'Los clientes pagan por WhatsApp, confirman OTP con su número y vos autorizás Pro.'
+            : isPro
+              ? 'Gracias por apoyar Cuanto. Ya tenés exportar, equipo ampliado y respaldo.'
+              : 'Pagás por WhatsApp, te damos un código y listo. Sin tarjeta en la app.'}
         </p>
       </FadeIn>
 
@@ -101,7 +142,29 @@ export function Pro({ onBack }: ProProps) {
         </li>
       </ul>
 
-      {!isPro ? (
+      {isMaster ? (
+        <FadeIn delay={0.04} className="pro-actions">
+          <form className="pro-code-form" onSubmit={grantPro}>
+            <label className="field">
+              <span className="field-label">Autorizar Pro a un teléfono cliente</span>
+              <input
+                type="tel"
+                placeholder="1809XXXXXXX"
+                value={tenantPhone}
+                onChange={(e) => setTenantPhone(e.target.value)}
+                required
+              />
+            </label>
+            {error ? <p className="form-error">{error}</p> : null}
+            {grantMsg ? <p className="pro-ok">{grantMsg}</p> : null}
+            <button type="submit" className="btn-primary btn-block">
+              Autorizar Pro
+            </button>
+          </form>
+        </FadeIn>
+      ) : null}
+
+      {!isPro && !isMaster ? (
         <FadeIn delay={0.05} className="pro-actions">
           {payUrl ? (
             <a className="btn-primary btn-block" href={payUrl} target="_blank" rel="noreferrer">
@@ -109,7 +172,7 @@ export function Pro({ onBack }: ProProps) {
               Pagar por WhatsApp
             </a>
           ) : (
-            <p className="form-error">Falta configurar VITE_WHATSAPP_BUSINESS</p>
+            <p className="form-error">Falta WhatsApp Business (master debe configurarlo)</p>
           )}
 
           <form className="pro-code-form" onSubmit={handleActivate}>
@@ -134,6 +197,12 @@ export function Pro({ onBack }: ProProps) {
             </button>
           </form>
         </FadeIn>
+      ) : null}
+
+      {isPro && !isMaster ? (
+        <p className="pro-ok" style={{ marginTop: 12 }}>
+          <Check size={16} /> Plan Pro activo en esta sesión
+        </p>
       ) : null}
 
       <p className="legal-foot muted small">

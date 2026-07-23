@@ -122,6 +122,7 @@ interface StoreContextValue {
     phoneWhatsapp: string
   }) => void
   activatePro: () => void
+  syncPlanFromAuth: (plan: 'free' | 'pro') => void
   setTheme: (theme: AppTheme) => void
   updateGoals: (patch: Partial<MoneyGoals>) => void
   addSavings: (amount: number) => void
@@ -313,6 +314,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ...s.settings,
           plan: 'pro',
           proActivatedAt: new Date().toISOString(),
+        },
+      }))
+    },
+    syncPlanFromAuth: (plan) => {
+      setState((s) => ({
+        ...s,
+        settings: {
+          ...s.settings,
+          plan,
+          ...(plan === 'pro' && !s.settings.proActivatedAt
+            ? { proActivatedAt: new Date().toISOString() }
+            : {}),
         },
       }))
     },
