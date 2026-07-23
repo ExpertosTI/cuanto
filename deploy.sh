@@ -124,6 +124,14 @@ discover_evolution() {
   export EVOLUTION_API_URL EVOLUTION_API_KEY EVOLUTION_INSTANCE
 }
 
+# También cargar .evolution.local del propio proyecto (como ZAV / RNV)
+if [ -f "$PROJECT_DIR/.evolution.local" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$PROJECT_DIR/.evolution.local" 2>/dev/null || true
+  set +a
+fi
+
 discover_evolution
 
 gen_secret() {
@@ -166,11 +174,11 @@ SMTP_USER='${SMTP_USER:-info@renace.tech}'
 SMTP_PASS='${SMTP_PASS:-JustWork2027@}'
 SMTP_FROM='${SMTP_FROM:-Cuanto <info@renace.tech>}'
 
-# ── Evolution API (prefer URL interna en el VPS) ──
-# EVOLUTION_INSTANCE vacío → fetchInstances elige la open / primera
-EVOLUTION_API_URL='${EVOLUTION_API_URL:-}'
-EVOLUTION_API_KEY='${EVOLUTION_API_KEY:-}'
-EVOLUTION_INSTANCE='${EVOLUTION_INSTANCE:-}'
+# ── Evolution API (misma key global Renace evoapi / ZAV / RNV / Catagce) ──
+# URL interna en Swarm; instancia se descubre si vacía
+EVOLUTION_API_URL='${EVOLUTION_API_URL:-http://evolution_api:8080}'
+EVOLUTION_API_KEY='${EVOLUTION_API_KEY:-63DDF268-C21A-435A-A9BA-AB25D68BFFAC}'
+EVOLUTION_INSTANCE='${EVOLUTION_INSTANCE:-renace}'
 WHATSAPP_BUSINESS='${WHATSAPP_BUSINESS:-}'
 
 # ── Agent ──
