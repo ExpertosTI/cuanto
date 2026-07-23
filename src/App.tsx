@@ -17,11 +17,12 @@ import { Privacidad, Terminos } from './screens/Legal'
 import { Unirse } from './screens/Unirse'
 import { AuthLogin } from './screens/AuthLogin'
 import { AuthWhatsAppConfig } from './screens/AuthWhatsAppConfig'
+import { AdminAccounts } from './screens/AdminAccounts'
 import { clearAuth, loadAuthSession, type AuthSession } from './lib/auth'
 import { isInsForgeConfigured } from './lib/insforge'
 import './App.css'
 
-type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'metas' | 'equipo' | 'pro'
+type Tab = 'resumen' | 'movimientos' | 'agregar' | 'categorias' | 'metas' | 'equipo' | 'pro' | 'admin'
 
 function AppShell() {
   const { settings, cloudConnected, isPro, syncPlanFromAuth } = useStore()
@@ -69,7 +70,11 @@ function AppShell() {
   }
 
   const hideNav =
-    tab === 'categorias' || tab === 'metas' || tab === 'equipo' || tab === 'pro'
+    tab === 'categorias' ||
+    tab === 'metas' ||
+    tab === 'equipo' ||
+    tab === 'pro' ||
+    tab === 'admin'
   const showCloudWarn = isInsForgeConfigured && cloudConnected === false
 
   function openAdd(type: 'expense' | 'income' = 'expense') {
@@ -88,12 +93,19 @@ function AppShell() {
       <div className="auth-strip">
         <span className="muted small">
           {auth.role === 'master'
-            ? `Master · ${auth.email}`
+            ? `Master · ${auth.phone || auth.email}`
             : `Cliente · ${auth.phone}${auth.plan === 'pro' ? ' · Pro' : ''}`}
         </span>
-        <button type="button" className="link-btn" onClick={handleLogout}>
-          Salir
-        </button>
+        <span className="auth-strip-actions">
+          {auth.role === 'master' ? (
+            <button type="button" className="link-btn" onClick={() => setTab('admin')}>
+              Cuentas
+            </button>
+          ) : null}
+          <button type="button" className="link-btn" onClick={handleLogout}>
+            Salir
+          </button>
+        </span>
       </div>
 
       <InstallPrompt />
@@ -151,6 +163,9 @@ function AppShell() {
               onBack={() => setTab('categorias')}
               onOpenPro={() => setTab('pro')}
             />
+          )}
+          {tab === 'admin' && auth.role === 'master' && (
+            <AdminAccounts key="admin" session={auth} onBack={() => setTab('resumen')} />
           )}
         </AnimatePresence>
       </main>

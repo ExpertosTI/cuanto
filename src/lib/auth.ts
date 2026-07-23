@@ -60,184 +60,119 @@ export function clearAuth() {
 }
 
 export function isAuthConfigured() {
-  // Local/dev fallback always available via functions or local OTP
   return true
 }
 
-/** Dev/local OTP when Netlify auth is unreachable */
-function localChallenge(payload: Record<string, unknown>) {
-  const json = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
-  return `local.${json}`
-}
-
-function parseLocalChallenge(challenge: string) {
-  if (!challenge.startsWith('local.')) return null
-  try {
-    return JSON.parse(decodeURIComponent(escape(atob(challenge.slice(6))))) as {
-      channel: string
-      sub: string
-      role: AuthRole
-      code: string
-      exp: number
-      name?: string
-    }
-  } catch {
-    return null
+async function postJson(path: string, body: Record<string, unknown>) {
+  const res = await fetch(endpoint(path), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const data = (await res.json().catch(() => ({}))) as RequestOtpResult & {
+    token?: string
+    session?: AuthSession
   }
+  return { res, data }
 }
 
 export async function requestEmailOtp(email: string) {
-  const path = endpoint('/api/auth/request-otp')
   try {
-    const res = await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channel: 'email', email }),
+    const { res, data } = await postJson('/api/auth/request-otp', {
+      channel: 'email',
+      email,
     })
-    if (res.ok) return (await res.json()) as RequestOtpResult
-  } catch {
-    /* fall through to local */
-  }
-
-  const master = (import.meta.env.VITE_MASTER_EMAIL || 'info@renace.tech').toLowerCase()
-  if (email.trim().toLowerCase() !== master) {
-    return { ok: false, error: 'Email no autorizado para master' }
-  }
-  const code = '249731'
-  const challenge = localChallenge({
-    channel: 'email',
-    sub: master,
-    role: 'master',
-    code,
-    exp: Date.now() + 5 * 60 * 1000,
-  })
-  return {
-    ok: true,
-    channel: 'email' as const,
-    challenge,
-    message: `Modo local: código enviado a ${master} (usa ${code} si no hay SMTP)`,
-    devCode: code,
+    if (res.ok && data.ok) return data as RequestOtpResult
+    return {
+      ok: false,
+      error: data.error || `OTP email falló (${res.status}). Revisá SMTP en cuanto-api.`,
+    }
+  } catch (e) {
+    return {
+      ok: false,
+      error:
+        e instanceof Error
+          ? e.message
+          : 'No hay API de auth. Desplegá cuanto-api con SMTP (sin códigos inventados).',
+    }
   }
 }
 
-export async function requestWhatsAppOtp(phone: string, name = '') {
-  const path = endpoint('/api/auth/request-otp')
+export async function requestWhatsAppOtp(
+  phone: string,
+  name = '',
+  opts: { asMaster?: boolean } = {},
+) {
   try {
-    const res = await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channel: 'whatsapp', phone, name }),
+    const { res, data } = await postJson('/api/auth/request-otp', {
+      channel: 'whatsapp',
+      phone,
+      name,
+      ...(opts.asMaster ? { asMaster: true } : {}),
     })
-    if (res.ok) return (await res.json()) as RequestOtpResult
-  } catch {
-    /* local */
-  }
-
-  const code = String(100000 + Math.floor(Math.random() * 900000))
-  const digits = phone.replace(/\D/g, '')
-  const challenge = localChallenge({
-    channel: 'whatsapp',
-    sub: digits,
-    role: 'tenant',
-    name,
-    code,
-    exp: Date.now() + 5 * 60 * 1000,
-  })
-  const business = (import.meta.env.VITE_WHATSAPP_BUSINESS || '').replace(/\D/g, '')
-  const confirmUrl = business
-    ? `https://wa.me/${business}?text=${encodeURIComponent(`Hola, soy ${name || digits}. Mi código local Cuanto es ${code}`)}`
-    : ''
-  return {
-    ok: true,
-    channel: 'whatsapp' as const,
-    challenge,
-    message: 'Modo local: confirmá por WhatsApp o usá el código mostrado.',
-    confirmUrl,
-    devCode: code,
+    if (res.ok && data.ok) return data as RequestOtpResult
+    return {
+      ok: false,
+      error:
+        data.error ||
+        `OTP WhatsApp falló (${res.status}). Conectá Evolution (QR) o revisá EVOLUTION_API_*.`,
+    }
+  } catch (e) {
+    return {
+      ok: false,
+      error:
+        e instanceof Error
+          ? e.message
+          : 'No hay API. El OTP lo genera el servidor y lo envía Evolution — no hay modo local con datos inventados.',
+    }
   }
 }
 
 export async function verifyOtp(challenge: string, code: string) {
-  const local = parseLocalChallenge(challenge)
-  if (local) {
-    if (Date.now() > local.exp) return { ok: false, error: 'Código expirado' }
-    if (local.code !== code.trim()) return { ok: false, error: 'Código inválido' }
-    const session: AuthSession = {
-      role: local.role,
-      email: local.role === 'master' ? local.sub : undefined,
-      phone: local.role === 'tenant' ? local.sub : undefined,
-      name: local.name || '',
-      plan: local.role === 'master' ? 'pro' : 'free',
-      whatsappBusiness: '',
-      exp: Date.now() + 30 * 24 * 60 * 60 * 1000,
+  try {
+    const { res, data } = await postJson('/api/auth/verify-otp', { challenge, code })
+    if (!res.ok || !data.ok || !data.token || !data.session) {
+      return { ok: false, error: data.error || 'No se pudo verificar' }
     }
-    const token = `local-session.${btoa(unescape(encodeURIComponent(JSON.stringify(session))))}`
-    saveAuth(token, session)
-    return { ok: true, token, session }
+    saveAuth(data.token, data.session)
+    return { ok: true, token: data.token, session: data.session }
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'Error de red al verificar OTP',
+    }
   }
-
-  const path = endpoint('/api/auth/verify-otp')
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ challenge, code }),
-  })
-  const data = (await res.json()) as {
-    ok?: boolean
-    error?: string
-    token?: string
-    session?: AuthSession
-  }
-  if (!res.ok || !data.ok || !data.token || !data.session) {
-    return { ok: false, error: data.error || 'No se pudo verificar' }
-  }
-  saveAuth(data.token, data.session)
-  return { ok: true, token: data.token, session: data.session }
 }
 
 export async function updateAuthSession(action: string, body: Record<string, unknown> = {}) {
   const token = loadAuthToken()
   if (!token) return { ok: false, error: 'Sin sesión' }
 
-  if (token.startsWith('local-session.')) {
-    const session = loadAuthSession()
-    if (!session) return { ok: false, error: 'Sin sesión' }
-    if (action === 'set_whatsapp' || action === 'mark_evo_ready') {
-      const phone =
-        String(body.phone || session.whatsappBusiness || import.meta.env.VITE_WHATSAPP_BUSINESS || '')
-          .replace(/\D/g, '') || '18494577463'
-      const next = { ...session, whatsappBusiness: phone, evoReady: true }
-      saveAuth(token, next)
-      return { ok: true, session: next }
+  try {
+    const res = await fetch(endpoint('/api/auth/session'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action, ...body }),
+    })
+    const data = (await res.json()) as {
+      ok?: boolean
+      error?: string
+      token?: string
+      session?: AuthSession
+      grant?: string
     }
-    if (action === 'set_own_plan') {
-      const plan = body.plan === 'pro' ? 'pro' : 'free'
-      const next = { ...session, plan: plan as 'free' | 'pro' }
-      saveAuth(token, next)
-      return { ok: true, session: next }
+    if (!res.ok || !data.ok) return { ok: false, error: data.error || 'Error' }
+    if (data.token && data.session) saveAuth(data.token, data.session)
+    return data
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'Error de red',
     }
-    return { ok: true, session }
   }
-
-  const path = endpoint('/api/auth/session')
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ action, ...body }),
-  })
-  const data = (await res.json()) as {
-    ok?: boolean
-    error?: string
-    token?: string
-    session?: AuthSession
-    grant?: string
-  }
-  if (!res.ok || !data.ok) return { ok: false, error: data.error || 'Error' }
-  if (data.token && data.session) saveAuth(data.token, data.session)
-  return data
 }
 
 export interface RequestOtpResult {
@@ -247,6 +182,7 @@ export interface RequestOtpResult {
   challenge?: string
   message?: string
   confirmUrl?: string
+  /** Solo si AUTH_DEV_SHOW_CODE=1 en el servidor (código real generado, no inventado fijo) */
   devCode?: string
   warning?: string
 }

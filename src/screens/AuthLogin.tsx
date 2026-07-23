@@ -12,7 +12,7 @@ interface AuthLoginProps {
   onAuthenticated: (session: AuthSession) => void
 }
 
-type Mode = 'choose' | 'master' | 'tenant'
+type Mode = 'choose' | 'master_phone' | 'master_email' | 'tenant'
 type Step = 'identity' | 'otp'
 
 export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
@@ -34,10 +34,14 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
     setError('')
     setLoading(true)
     try {
-      const res =
-        mode === 'master'
-          ? await requestEmailOtp(email)
-          : await requestWhatsAppOtp(phone, name)
+      let res
+      if (mode === 'master_email') {
+        res = await requestEmailOtp(email)
+      } else if (mode === 'master_phone') {
+        res = await requestWhatsAppOtp(phone, name, { asMaster: true })
+      } else {
+        res = await requestWhatsAppOtp(phone, name)
+      }
       if (!res.ok || !res.challenge) {
         setError(res.error || 'No se pudo enviar el código')
         return
@@ -68,6 +72,9 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
     }
   }
 
+  const isMasterPhone = mode === 'master_phone'
+  const isMasterEmail = mode === 'master_email'
+
   return (
     <Screen className="auth-screen">
       <FadeIn className="auth-card">
@@ -79,16 +86,25 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
 
         {mode === 'choose' ? (
           <div className="auth-choose">
-            <button type="button" className="btn-primary btn-block" onClick={() => setMode('master')}>
-              <Mail size={18} />
-              Master · OTP por correo
+            <button
+              type="button"
+              className="btn-primary btn-block"
+              onClick={() => setMode('master_phone')}
+            >
+              <MessageCircle size={18} />
+              Master · mi WhatsApp (configurar)
             </button>
             <button type="button" className="btn-secondary btn-block" onClick={() => setMode('tenant')}>
               <MessageCircle size={18} />
-              Cliente · login con WhatsApp
+              Cliente · activar con mi número
+            </button>
+            <button type="button" className="link-btn" onClick={() => setMode('master_email')}>
+              <Mail size={14} />
+              Master · OTP por correo
             </button>
             <p className="muted small auth-note">
-              Master: <strong>info@renace.tech</strong>. Clientes confirman e inician con su número.
+              La primera vez el master entra con su teléfono, escanea el QR de Evolution y luego los
+              clientes pueden activar.
             </p>
           </div>
         ) : null}
@@ -98,7 +114,7 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
             <button type="button" className="link-btn" onClick={() => setMode('choose')}>
               ← Volver
             </button>
-            {mode === 'master' ? (
+            {isMasterEmail ? (
               <label className="field">
                 <span className="field-label">Correo master</span>
                 <input
@@ -112,7 +128,7 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
             ) : (
               <>
                 <label className="field">
-                  <span className="field-label">Tu nombre</span>
+                  <span className="field-label">{isMasterPhone ? 'Tu nombre (master)' : 'Tu nombre'}</span>
                   <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" />
                 </label>
                 <label className="field">
@@ -126,6 +142,12 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
                     required
                   />
                 </label>
+                {isMasterPhone ? (
+                  <p className="muted small">
+                    Si Evolution aún no está conectado, el código llega al correo master (SMTP). Luego
+                    escaneás el QR.
+                  </p>
+                ) : null}
               </>
             )}
             {error ? <p className="form-error">{error}</p> : null}
@@ -145,12 +167,12 @@ export function AuthLogin({ onAuthenticated }: AuthLoginProps) {
                 setCode('')
               }}
             >
-              ← Cambiar {mode === 'master' ? 'correo' : 'número'}
+              ← Cambiar {isMasterEmail ? 'correo' : 'número'}
             </button>
             <p className="muted small">{hint}</p>
             {devCode ? (
               <p className="auth-dev">
-                Código (dev/local): <strong>{devCode}</strong>
+                Código (dev): <strong>{devCode}</strong>
               </p>
             ) : null}
             {confirmUrl ? (

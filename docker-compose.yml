@@ -84,18 +84,22 @@ services:
       PORT: "3000"
       AUTH_SECRET: ${AUTH_SECRET:-}
       MASTER_EMAILS: ${MASTER_EMAILS:-info@renace.tech}
+      MASTER_PHONES: ${MASTER_PHONES:-}
       AUTH_DEV_SHOW_CODE: ${AUTH_DEV_SHOW_CODE:-0}
       SMTP_HOST: ${SMTP_HOST:-smtp.hostinger.com}
       SMTP_PORT: ${SMTP_PORT:-465}
       SMTP_USER: ${SMTP_USER:-info@renace.tech}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-Cuanto <info@renace.tech>}
-      EVOLUTION_API_URL: ${EVOLUTION_API_URL:-https://evoapi.renace.tech}
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL:-}
       EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
-      EVOLUTION_INSTANCE: ${EVOLUTION_INSTANCE:-cuanto}
-      WHATSAPP_BUSINESS: ${WHATSAPP_BUSINESS:-18494577463}
-      VITE_WHATSAPP_BUSINESS: ${VITE_WHATSAPP_BUSINESS:-18494577463}
+      EVOLUTION_INSTANCE: ${EVOLUTION_INSTANCE:-}
+      WHATSAPP_BUSINESS: ${WHATSAPP_BUSINESS:-}
+      VITE_WHATSAPP_BUSINESS: ${VITE_WHATSAPP_BUSINESS:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ACCOUNTS_DIR: /data
+    volumes:
+      - cuanto_accounts:/data
     networks:
       - RenaceNet
     deploy:
@@ -148,3 +152,6 @@ services:
 networks:
   RenaceNet:
     external: true
+
+volumes:
+  cuanto_accounts:

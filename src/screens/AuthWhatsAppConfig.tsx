@@ -14,7 +14,8 @@ type QrPayload = {
   qrBase64?: string | null
   connected?: boolean
   message?: string
-  expectedOwner?: string
+  /** Número real descubierto en Evolution (ownerJid), no hardcode */
+  ownerNumber?: string
   instance?: string
   error?: string
   detail?: string
@@ -66,15 +67,11 @@ export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppCo
     setBusy(true)
     setError('')
     try {
-      const res = await updateAuthSession('mark_evo_ready', {})
+      const res = await updateAuthSession('mark_evo_ready', {
+        phone: qr?.ownerNumber || '',
+      })
       if (!res.ok || !res.session) {
-        // fallback local
-        const next = {
-          ...session,
-          whatsappBusiness: qr?.expectedOwner || session.whatsappBusiness || '',
-          evoReady: true,
-        } as AuthSession
-        onDone(next)
+        setError(res.error || 'No se pudo guardar la sesión. Revisá cuanto-api / Evolution.')
         return
       }
       onDone(res.session)
@@ -121,8 +118,10 @@ export function AuthWhatsAppConfig({ session, onDone, onLogout }: AuthWhatsAppCo
             </span>
           </div>
 
-          {qr?.expectedOwner ? (
-            <p className="muted small">Línea esperada: +{qr.expectedOwner}</p>
+          {qr?.ownerNumber ? (
+            <p className="muted small">Línea conectada (Evolution): +{qr.ownerNumber}</p>
+          ) : qr?.instance && !qr.connected ? (
+            <p className="muted small">Instancia «{qr.instance}» — escaneá el QR para descubrir el número.</p>
           ) : null}
 
           {qr?.qrBase64 && !qr.connected ? (

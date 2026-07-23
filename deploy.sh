@@ -14,7 +14,6 @@ DOMAIN="${DOMAIN:-cuanto.renace.tech}"
 
 DEFAULT_INSFORGE_URL="https://insforge.renace.tech"
 DEFAULT_INSFORGE_ANON_KEY="eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24ifQ.YTrshWNWGSWsmc6DUhitFQSXDICh9BTIiz4CK0GX0Cw"
-DEFAULT_WHATSAPP="18494577463"
 DEFAULT_PRO_CODE="CUANTO-PRO"
 
 cyan()  { printf "\033[36m%s\033[0m\n" "$*"; }
@@ -67,7 +66,8 @@ write_env() {
 # ── Frontend (Vite build args) ──
 VITE_INSFORGE_URL=${VITE_INSFORGE_URL:-$DEFAULT_INSFORGE_URL}
 VITE_INSFORGE_ANON_KEY=${VITE_INSFORGE_ANON_KEY:-$DEFAULT_INSFORGE_ANON_KEY}
-VITE_WHATSAPP_BUSINESS=${VITE_WHATSAPP_BUSINESS:-$DEFAULT_WHATSAPP}
+# Vacío = se toma del owner conectado en Evolution tras escanear QR
+VITE_WHATSAPP_BUSINESS=${VITE_WHATSAPP_BUSINESS:-}
 VITE_PRO_CODE=${VITE_PRO_CODE:-$DEFAULT_PRO_CODE}
 VITE_MASTER_EMAIL=${VITE_MASTER_EMAIL:-info@renace.tech}
 VITE_AUTH_URL=${VITE_AUTH_URL:-}
@@ -76,6 +76,8 @@ DOMAIN=${DOMAIN}
 # ── API auth ──
 AUTH_SECRET=${auth_secret}
 MASTER_EMAILS=${MASTER_EMAILS:-info@renace.tech}
+# Teléfonos master (opcional, comas). Vacío = primer teléfono que entre queda master.
+MASTER_PHONES=${MASTER_PHONES:-}
 AUTH_DEV_SHOW_CODE=${AUTH_DEV_SHOW_CODE:-0}
 
 # ── SMTP (Hostinger / Renace) ──
@@ -86,10 +88,11 @@ SMTP_PASS=${SMTP_PASS:-}
 SMTP_FROM=${SMTP_FROM:-Cuanto <info@renace.tech>}
 
 # ── Evolution API (prefer URL interna en el VPS) ──
-EVOLUTION_API_URL=${EVOLUTION_API_URL:-https://evoapi.renace.tech}
+# EVOLUTION_INSTANCE vacío → fetchInstances elige la open / primera
+EVOLUTION_API_URL=${EVOLUTION_API_URL:-}
 EVOLUTION_API_KEY=${EVOLUTION_API_KEY:-}
-EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE:-cuanto}
-WHATSAPP_BUSINESS=${WHATSAPP_BUSINESS:-$DEFAULT_WHATSAPP}
+EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE:-}
+WHATSAPP_BUSINESS=${WHATSAPP_BUSINESS:-}
 
 # ── Agent ──
 GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -107,12 +110,12 @@ export DOMAIN
 green "   Dominio     → $DOMAIN"
 green "   InsForge    → ${VITE_INSFORGE_URL}"
 green "   SMTP        → ${SMTP_HOST} / ${SMTP_USER}"
-green "   Evolution   → ${EVOLUTION_API_URL} · ${EVOLUTION_INSTANCE}"
+green "   Evolution   → ${EVOLUTION_API_URL:-'(sin URL)'} · instancia ${EVOLUTION_INSTANCE:-'(auto fetchInstances)'}"
 if [ -z "${SMTP_PASS:-}" ]; then
-  yellow "   ⚠ SMTP_PASS vacío — OTP master irá a modo desarrollo hasta que lo configures"
+  yellow "   ⚠ SMTP_PASS vacío — OTP master fallará hasta configurarlo (no se inventan códigos)"
 fi
-if [ -z "${EVOLUTION_API_KEY:-}" ]; then
-  yellow "   ⚠ EVOLUTION_API_KEY vacío — no se podrá escanear QR ni enviar OTP WA"
+if [ -z "${EVOLUTION_API_URL:-}" ] || [ -z "${EVOLUTION_API_KEY:-}" ]; then
+  yellow "   ⚠ EVOLUTION_API_URL / EVOLUTION_API_KEY — requeridos para QR y OTP WhatsApp"
 fi
 
 cyan "── 3. Construir imágenes (web + api) ───────────"
